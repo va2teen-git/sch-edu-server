@@ -1,0 +1,70 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8 text-center">
+        {% if completed %}
+        <div class="card cyber-card p-5 border-success">
+            <h1 class="text-success mb-4">🏆 МИССИЯ 0 ВЫПОЛНЕНА!</h1>
+            <p class="lead text-light">Отличная работа! Вы успешно освоили принцип Бита Четности.</p>
+            <a href="/menu" class="btn btn-outline-light mt-4">В ГЛАВНОЕ МЕНЮ</a>
+        </div>
+        {% else %}
+        <div class="card cyber-card p-4">
+            <h2 class="text-success mb-3">МИССИЯ 0: Бит четности</h2>
+            <h4 class="text-light mb-4">Прогресс: {{ correct }} / {{ target }}</h4>
+            
+            <div class="alert alert-secondary text-start mx-auto" style="max-width: 700px; font-size: 0.95rem;">
+                <strong>🌍 Как это работает в реальности?</strong><br>
+                Бит четности используется в <b>ECC-памяти (серверная ОЗУ)</b> и COM-портах. Аппаратура автоматически добавляет 1 бит к каждому блоку данных так, чтобы сумма единиц всегда была чётной. Если из-за перегрева или космической радиации один бит в чипе памяти перевернется, материнская плата мгновенно увидит, что сумма стала нечетной. Это позволит предотвратить повреждение базы данных и вовремя выдать системную ошибку.
+            </div>
+
+            <p class="text-info mt-4 mb-2">Задание: Посчитайте сумму единиц в полученном блоке памяти. Если сумма чётная — сигнал в порядке. Если нечётная — в чипе произошел сбой!</p>
+            
+            <div class="display-1 text-white fw-bold mb-5 font-monospace">
+                {% for b in task %}
+                <span class="px-2">{{ b }}</span>
+                {% endfor %}
+            </div>
+            
+            <div id="result-msg" class="alert d-none font-monospace fw-bold fs-5"></div>
+            
+            <div class="d-flex justify-content-center gap-4 mb-4" id="action-buttons">
+                <button class="btn btn-outline-success btn-lg px-4 fs-3" onclick="submitAnswer(false)">Ошибок нет</button>
+                <button class="btn btn-outline-danger btn-lg px-4 fs-3" onclick="submitAnswer(true)">Есть ошибка!</button>
+            </div>
+            
+            <a href="/menu" class="btn btn-secondary mt-3">Прервать миссию</a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function submitAnswer(hasError) {
+    document.querySelectorAll('#action-buttons button').forEach(b => b.disabled = true);
+    
+    fetch('/check_parity', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ has_error: hasError })
+    })
+    .then(res => res.json())
+    .then(data => {
+        const msgDiv = document.getElementById('result-msg');
+        msgDiv.classList.remove('d-none', 'alert-success', 'alert-danger');
+        
+        if (data.success) {
+            msgDiv.classList.add('alert-success');
+            msgDiv.innerText = data.msg;
+            setTimeout(() => window.location.reload(), 1500);
+        } else {
+            msgDiv.classList.add('alert-danger');
+            msgDiv.innerText = data.msg;
+            setTimeout(() => window.location.reload(), 3500);
+        }
+    });
+}
+</script>
+{% endblock %}

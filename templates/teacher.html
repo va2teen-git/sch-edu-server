@@ -1,0 +1,71 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="row">
+    <div class="col-12 text-center mb-4">
+        <h1 class="text-danger fw-bold">🛡️ M.A.S.T.E.R. DASHBOARD (WEB) 🛡️</h1>
+        <p class="text-light">Мониторинг траекторий учеников в реальном времени</p>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-4">
+        <div class="card cyber-card p-3 mb-4">
+            <h4 class="text-info border-bottom border-secondary pb-2">Список учеников</h4>
+            <div class="list-group list-group-flush bg-transparent" id="student-list" role="tablist">
+                {% if not students %}
+                <p class="text-muted mt-3">Пока никто не подключился...</p>
+                {% endif %}
+                
+                {% for student_name in students.keys() %}
+                <a class="list-group-item list-group-item-action bg-transparent text-light border-secondary {% if loop.first %}active{% endif %}" 
+                   id="list-{{ loop.index }}-list" 
+                   data-bs-toggle="list" 
+                   href="#list-{{ loop.index }}" 
+                   role="tab">
+                    {{ student_name }}
+                    <span class="badge bg-secondary float-end">{{ students[student_name]|length }} логов</span>
+                </a>
+                {% endfor %}
+            </div>
+            <button class="btn btn-outline-info mt-4" onclick="window.location.reload()">🔄 Обновить данные</button>
+        </div>
+    </div>
+    
+    <div class="col-md-8">
+        <div class="card cyber-card p-4 h-100">
+            <div class="tab-content" id="nav-tabContent">
+                {% if not students %}
+                <div class="text-center text-muted mt-5">Ожидание данных...</div>
+                {% endif %}
+                
+                {% for student_name, logs in students.items() %}
+                <div class="tab-pane fade {% if loop.first %}show active{% endif %}" id="list-{{ loop.index }}" role="tabpanel">
+                    <h3 class="text-warning mb-4">Траектория: <span class="text-white">{{ student_name }}</span></h3>
+                    
+                    <div class="bg-dark p-3 rounded" style="max-height: 600px; overflow-y: auto;">
+                        <table class="table table-dark table-hover font-monospace" style="font-size: 0.9rem;">
+                            <thead>
+                                <tr>
+                                    <th width="20%">Время</th>
+                                    <th>Действие</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for log in logs %}
+                                <tr>
+                                    <td class="text-secondary">{{ log.timestamp.strftime('%H:%M:%S') }}</td>
+                                    <td class="{% if '[ОШИБКА]' in log.action %}text-danger{% elif '[ВЕРНО]' in log.action %}text-success{% else %}text-light{% endif %}">
+                                        {{ log.action }}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

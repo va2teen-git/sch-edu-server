@@ -1,0 +1,72 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8 text-center">
+        {% if completed %}
+        <div class="card cyber-card p-5 border-success">
+            <h1 class="text-success mb-4">🏆 МИССИЯ 1 ВЫПОЛНЕНА!</h1>
+            <p class="lead text-light">Отличная работа! Вы успешно освоили код с повторением.</p>
+            <a href="/menu" class="btn btn-outline-light mt-4">В ГЛАВНОЕ МЕНЮ</a>
+        </div>
+        {% else %}
+        <div class="card cyber-card p-4">
+            <h2 class="text-info mb-3">МИССИЯ 1: Код с повторением (x3)</h2>
+            <h4 class="text-light mb-4">Прогресс: {{ correct }} / {{ target }}</h4>
+            
+            <div class="alert alert-secondary text-start mx-auto" style="max-width: 700px; font-size: 0.95rem;">
+                <strong>🌍 Как это работает в реальности?</strong><br>
+                Троирование битов — крайне медленный, но невероятно надежный способ передачи данных. Он применяется для связи с <b>космическими зондами (например, «Вояджер»)</b> на расстоянии миллиардов километров. Сигнал летит через солнечный ветер и радиацию, и часть битов неизбежно "переворачивается" (1 становится 0). На Земле суперкомпьютеры NASA расшифровывают телеметрию, используя банальное "правило большинства": какой бит пришел чаще, тот зонд и пытался отправить.
+            </div>
+
+            <p class="text-info mt-4 mb-2">Задание: Мы поймали искаженный пакет телеметрии с марсохода. Используйте "правило большинства", чтобы расшифровать исходный бит.</p>
+            
+            <div class="display-1 text-white fw-bold mb-5 font-monospace">
+                {% for b in task %}
+                <span class="px-2">{{ b }}</span>
+                {% endfor %}
+            </div>
+            
+            <h4 class="cyber-text mb-3">Какой бит был передан изначально?</h4>
+            
+            <div id="result-msg" class="alert d-none font-monospace fw-bold fs-5"></div>
+            
+            <div class="d-flex justify-content-center gap-4 mb-4" id="action-buttons">
+                <button class="btn btn-outline-danger btn-lg px-5 fs-1" onclick="submitAnswer(0)">0</button>
+                <button class="btn btn-outline-success btn-lg px-5 fs-1" onclick="submitAnswer(1)">1</button>
+            </div>
+            
+            <a href="/menu" class="btn btn-secondary mt-3">Прервать миссию</a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function submitAnswer(ans) {
+    document.querySelectorAll('#action-buttons button').forEach(b => b.disabled = true);
+    
+    fetch('/check_m1', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ answer: ans })
+    })
+    .then(res => res.json())
+    .then(data => {
+        const msgDiv = document.getElementById('result-msg');
+        msgDiv.classList.remove('d-none', 'alert-success', 'alert-danger');
+        
+        if (data.success) {
+            msgDiv.classList.add('alert-success');
+            msgDiv.innerText = data.msg;
+            setTimeout(() => window.location.reload(), 1500);
+        } else {
+            msgDiv.classList.add('alert-danger');
+            msgDiv.innerText = data.msg;
+            setTimeout(() => window.location.reload(), 3000);
+        }
+    });
+}
+</script>
+{% endblock %}

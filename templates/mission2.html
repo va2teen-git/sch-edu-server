@@ -1,0 +1,122 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-10 text-center">
+        {% if completed %}
+        <div class="card cyber-card p-5 border-success">
+            <h1 class="text-success mb-4">🏆 МИССИЯ 2 ВЫПОЛНЕНА!</h1>
+            <p class="lead text-light">Великолепно! Вы освоили обнаружение и исправление ошибок с помощью Кода Хэмминга.</p>
+            <a href="/menu" class="btn btn-outline-light mt-4">В ГЛАВНОЕ МЕНЮ</a>
+        </div>
+        {% else %}
+        <div class="card cyber-card p-4">
+            <h2 class="text-warning mb-3">МИССИЯ 2: Код Хэмминга (7,4)</h2>
+            <h4 class="text-light mb-4">Прогресс: {{ correct }} / {{ target }}</h4>
+            
+            <!-- Easter Egg Video (Interstellar) -->
+            <div class="d-flex justify-content-center mb-3">
+                <video id="interstellar-meme" width="350" height="auto" autoplay muted playsinline style="border-radius: 10px; border: 2px solid #555;">
+                    <source src="/static/meme.mp4?v={{ range(1, 1000000) | random }}" type="video/mp4">
+                </video>
+            </div>
+            
+            <p class="text-secondary mb-2">Вычислите синдром и найдите поврежденный бит.</p>
+            <div class="alert alert-dark text-start font-monospace text-muted py-2 mb-4 mx-auto" style="max-width: 600px; font-size: 0.9rem;">
+                Подсказка для вычисления синдрома (сумма единиц на позициях):<br>
+                s1: проверяет позиции 1, 3, 5, 7.<br>
+                s2: проверяет позиции 2, 3, 6, 7.<br>
+                s3: проверяет позиции 4, 5, 6, 7.
+            </div>
+            
+            <div id="result-msg" class="alert d-none font-monospace fw-bold fs-5"></div>
+            
+            <h4 class="text-light mb-3">Кликните по неправильному биту:</h4>
+            
+            <div class="d-flex justify-content-center flex-wrap gap-2 mb-5" id="bit-buttons">
+                {% for i in range(7) %}
+                <button class="btn btn-primary btn-lg font-monospace fs-1 px-4 py-3" onclick="submitAnswer({{ i+1 }}, this)">
+                    <div style="font-size: 0.8rem; color: #aaa; margin-bottom: 5px;">Поз {{ i+1 }}</div>
+                    {{ task[i] }}
+                </button>
+                {% endfor %}
+            </div>
+            
+            <div class="d-flex justify-content-between mt-4">
+                <a href="/menu" class="btn btn-secondary">Прервать миссию</a>
+                <a href="/mission2" class="btn btn-outline-secondary">Пропустить задачу (Сгенерировать новый)</a>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    const video = document.getElementById("interstellar-meme");
+    if (!video) return;
+    
+    const progress = {{ correct }};
+    const maxProgress = {{ target }};
+    
+    function setupVideo() {
+        const totalVideoDuration = video.duration;
+        if (!totalVideoDuration || totalVideoDuration === Infinity) return;
+        
+        // Сколько секунд пропустить в начале (чтобы убрать напарницу и начать со стула)
+        const SKIP_SECONDS = 35; 
+        
+        const playableDuration = totalVideoDuration - SKIP_SECONDS;
+        const segmentLength = playableDuration / maxProgress;
+        
+        let startTime = SKIP_SECONDS + (progress * segmentLength);
+        if (startTime >= totalVideoDuration) {
+            startTime = Math.max(SKIP_SECONDS, totalVideoDuration - segmentLength);
+        }
+        const endTime = startTime + segmentLength;
+        
+        video.currentTime = startTime;
+        
+        video.ontimeupdate = function() {
+            if (video.currentTime >= endTime) {
+                video.currentTime = startTime; // Loop the specific chunk
+            }
+        };
+    }
+
+    if (video.readyState >= 1) {
+        setupVideo();
+    } else {
+        video.addEventListener("loadedmetadata", setupVideo);
+    }
+});
+
+function submitAnswer(pos, btnElement) {
+    document.querySelectorAll('#bit-buttons button').forEach(b => b.disabled = true);
+    
+    fetch('/check_m2', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ position: pos })
+    })
+    .then(res => res.json())
+    .then(data => {
+        const msgDiv = document.getElementById('result-msg');
+        msgDiv.classList.remove('d-none', 'alert-success', 'alert-danger');
+        
+        if (data.success) {
+            btnElement.classList.replace('btn-primary', 'btn-success');
+            msgDiv.classList.add('alert-success');
+            msgDiv.innerText = data.msg;
+            setTimeout(() => window.location.reload(), 2000);
+        } else {
+            btnElement.classList.replace('btn-primary', 'btn-danger');
+            msgDiv.classList.add('alert-danger');
+            msgDiv.innerText = data.msg;
+            setTimeout(() => window.location.reload(), 4000);
+        }
+    });
+}
+</script>
+{% endblock %}
