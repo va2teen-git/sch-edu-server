@@ -4,52 +4,111 @@
 <div class="row">
     <!-- Theory Block -->
     <div class="col-md-7">
-        <div class="card cyber-card p-4 text-white">
+        <div class="card cyber-card p-4 text-white mb-4">
             <h2 class="cyber-text">📚 Урок 4: Восьмеричная система счисления</h2>
             <hr class="border-secondary">
             
-            <h5>1. Основные понятия</h5>
+            <h5>1. Что такое восьмеричная система?</h5>
             <p>
-                <b>Система счисления</b> — это правила записи чисел. 
-                В восьмеричной системе основание равно <b>8</b>.
-                Алфавит (цифры): <b>0, 1, 2, 3, 4, 5, 6, 7</b>.<br>
-                <span class="text-warning">Внимание: Цифр 8 и 9 не существует! Число 185<sub>8</sub> — это ошибка.</span>
+                <b>Основание системы</b> — 8. Это значит, что для записи чисел используется ровно 8 цифр.<br>
+                <b>Алфавит:</b> 0, 1, 2, 3, 4, 5, 6, 7.<br>
+                <span class="text-warning">Важно: Цифр 8 и 9 не существует! Максимальная цифра всегда на единицу меньше основания.</span>
             </p>
 
-            <h5>2. Перевод из 10-й в 8-ю систему</h5>
-            <p>Делим десятичное число на 8 уголоком. Остаток — это цифра. Полученное частное снова делим на 8, и так до тех пор, пока частное не станет равным нулю. Искомое число записывается из остатков <b>снизу вверх (в обратном порядке)</b>.</p>
-            <div class="bg-dark p-2 rounded border border-secondary mb-3">
-                <small>Пример перевода 101<sub>10</sub> в 8-ю:</small><br>
-                101 : 8 = 12 (остаток <b>5</b>)<br>
-                12 : 8 = 1 (остаток <b>4</b>)<br>
-                1 : 8 = 0 (остаток <b>1</b>)<br>
+            <h5>2. Перевод из десятичной (10) в восьмеричную (8)</h5>
+            <p>Чтобы перевести привычное десятичное число в восьмеричное, нужно последовательно делить его на 8 "уголком".</p>
+            <ul>
+                <li>Остаток от деления — это цифра числа.</li>
+                <li>Полученное частное снова делим на 8, пока оно не станет нулем.</li>
+                <li><b>Результат записываем из остатков снизу вверх (в обратном порядке).</b></li>
+            </ul>
+            <div class="bg-dark p-2 rounded border border-secondary mb-3 font-monospace small">
+                Пример: 101<sub>10</sub> в 8-ю:<br>
+                101 / 8 = 12 (остаток <b>5</b>)<br>
+                12 / 8 = 1 (остаток <b>4</b>)<br>
+                1 / 8 = 0 (остаток <b>1</b>)<br>
                 Ответ: <b>145<sub>8</sub></b>
             </div>
 
-            <h5>3. Связь 8-й и 2-й систем (Метод триад)</h5>
-            <p>Поскольку 8 = 2<sup>3</sup>, каждая восьмеричная цифра может быть представлена ровно тремя двоичными цифрами (триадой).<br>
-                <b>0</b>=000, <b>1</b>=001, <b>2</b>=010, <b>3</b>=011, <b>4</b>=100, <b>5</b>=101, <b>6</b>=110, <b>7</b>=111.
-            </p>
+            <h5>3. Метод триад (Связь с двоичной системой)</h5>
+            <p>Поскольку <b>8 = 2<sup>3</sup></b>, каждая восьмеричная цифра идеально кодируется ровно тремя двоичными цифрами (это называется <b>триада</b>).</p>
+            <div class="row text-center mb-2">
+                <div class="col"><b>0</b> = 000</div>
+                <div class="col"><b>1</b> = 001</div>
+                <div class="col"><b>2</b> = 010</div>
+                <div class="col"><b>3</b> = 011</div>
+            </div>
+            <div class="row text-center mb-3">
+                <div class="col"><b>4</b> = 100</div>
+                <div class="col"><b>5</b> = 101</div>
+                <div class="col"><b>6</b> = 110</div>
+                <div class="col"><b>7</b> = 111</div>
+            </div>
+            <p>Чтобы перевести из двоичной системы в восьмеричную, просто разбейте число на группы по 3 цифры <b>справа налево</b> и замените по таблице. Пример: 110101<sub>2</sub> -> 110 | 101 -> 65<sub>8</sub>.</p>
         </div>
     </div>
 
-    <!-- Interactive Task -->
+    <!-- Interactive Tasks -->
     <div class="col-md-5">
-        <div class="card cyber-card p-4 text-center">
-            <h3 class="text-danger">🚨 Взлом Кибер-Сейфа</h3>
-            <p class="text-muted">Введи правильный код, чтобы разблокировать доступ к серверу.</p>
+        
+        <ul class="nav nav-tabs mb-3" id="missionTabs" role="tablist">
+          <li class="nav-item" role="presentation">
+            <button class="nav-link active cyber-text bg-dark" id="lvl1-tab" data-bs-toggle="tab" data-bs-target="#lvl1" type="button" role="tab">Ур 1: База</button>
+          </li>
+          <li class="nav-item" role="presentation">
+            <button class="nav-link text-warning bg-dark" id="lvl2-tab" data-bs-toggle="tab" data-bs-target="#lvl2" type="button" role="tab">Ур 2: Триады</button>
+          </li>
+          <li class="nav-item" role="presentation">
+            <button class="nav-link text-danger bg-dark" id="lvl3-tab" data-bs-toggle="tab" data-bs-target="#lvl3" type="button" role="tab">Ур 3: Дебаг</button>
+          </li>
+        </ul>
+
+        <div class="tab-content" id="missionTabsContent">
             
-            <div class="alert alert-dark border-secondary">
-                <h4 class="mb-0">PIN: <span class="cyber-text">{{ decimal_number }}</span><sub>10</sub></h4>
-                <small>Переведи это десятичное число в восьмеричную систему на черновике, чтобы получить код от сейфа.</small>
+            <!-- LEVEL 1 -->
+            <div class="tab-pane fade show active" id="lvl1" role="tabpanel">
+                <div class="card cyber-card p-4 text-center border-success">
+                    <h4 class="text-success">Уровень 1: Кибер-Сейф</h4>
+                    <p class="text-muted small">Переведи десятичное число в восьмеричное делением на 8 (на черновике).</p>
+                    <div class="alert alert-dark border-secondary">
+                        <h4 class="mb-0">PIN: <span class="cyber-text">{{ lvl1_dec }}</span><sub>10</sub></h4>
+                    </div>
+                    <input type="text" id="ans1" class="form-control text-center bg-dark text-white mb-3" placeholder="Восьмеричный код">
+                    <button onclick="checkLevel(1, 'ans1')" class="btn btn-outline-success w-100">ВЗЛОМАТЬ</button>
+                    <div id="res1" class="mt-2 fw-bold"></div>
+                </div>
             </div>
 
-            <div class="my-4">
-                <input type="text" id="answerInput" class="form-control text-center bg-dark text-white border-secondary fs-3" placeholder="Введи восьмеричный код" maxlength="6">
+            <!-- LEVEL 2 -->
+            <div class="tab-pane fade" id="lvl2" role="tabpanel">
+                <div class="card cyber-card p-4 text-center border-warning">
+                    <h4 class="text-warning">Уровень 2: Перехват</h4>
+                    <p class="text-muted small">Расшифруй двоичный сигнал в восьмеричный код с помощью метода триад.</p>
+                    <div class="alert alert-dark border-secondary">
+                        <h4 class="mb-0">Сигнал: <span class="text-warning">{{ lvl2_bin }}</span><sub>2</sub></h4>
+                    </div>
+                    <input type="text" id="ans2" class="form-control text-center bg-dark text-white mb-3" placeholder="Восьмеричный код">
+                    <button onclick="checkLevel(2, 'ans2')" class="btn btn-outline-warning w-100">РАСШИФРОВАТЬ</button>
+                    <div id="res2" class="mt-2 fw-bold"></div>
+                </div>
             </div>
 
-            <button id="checkBtn" class="btn btn-outline-success btn-lg w-100">ВЗЛОМАТЬ СЕЙФ</button>
-            <div id="resultMsg" class="mt-3 fw-bold fs-5"></div>
+            <!-- LEVEL 3 -->
+            <div class="tab-pane fade" id="lvl3" role="tabpanel">
+                <div class="card cyber-card p-4 text-center border-danger">
+                    <h4 class="text-danger">Уровень 3: Отладчик</h4>
+                    <p class="text-muted small">Модуль перевода сломался. Найди ошибку при переводе и исправь <b>одну</b> цифру.</p>
+                    <div class="alert alert-dark border-secondary text-start small font-monospace">
+                        <div>Двоичное: <b>{{ lvl3_bin }}</b></div>
+                        <div>Ошибочный перевод: <b class="text-danger">{{ lvl3_fake }}</b></div>
+                    </div>
+                    <p class="small text-light">Какая цифра в восьмеричном коде неправильная? Введи <b>верную</b> цифру, которая должна стоять на её месте.</p>
+                    <input type="text" id="ans3" class="form-control text-center bg-dark text-white mb-3" placeholder="Верная цифра (одна)">
+                    <button onclick="checkLevel(3, 'ans3')" class="btn btn-outline-danger w-100">ИСПРАВИТЬ БАГ</button>
+                    <div id="res3" class="mt-2 fw-bold"></div>
+                </div>
+            </div>
+
         </div>
     </div>
 </div>
@@ -61,40 +120,39 @@
     let attemptsCount = 0;
     let actionLog = [];
 
-    document.getElementById('checkBtn').addEventListener('click', function() {
-        const answer = document.getElementById('answerInput').value.trim();
-        const resultMsg = document.getElementById('resultMsg');
+    function checkLevel(level, inputId) {
+        const answer = document.getElementById(inputId).value.trim();
+        const resultMsg = document.getElementById('res' + level);
         const timestamp = new Date().toISOString();
         
         if(answer === '') {
-            resultMsg.innerHTML = '<span class="text-warning">Введите код!</span>';
+            resultMsg.innerHTML = '<span class="text-warning">Введите ответ!</span>';
             return;
         }
 
         attemptsCount++;
 
-        fetch('/check_octal', {
+        fetch('/check_octal_level', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ answer: answer })
+            body: JSON.stringify({ level: level, answer: answer })
         })
         .then(response => response.json())
         .then(data => {
-            actionLog.push({time: timestamp, input: answer, success: data.success});
+            actionLog.push({time: timestamp, input: `[Ур ${level}] ${answer}`, success: data.success});
             
             if(data.success) {
-                resultMsg.innerHTML = '<span class="text-success">🔓 ' + data.msg + '</span>';
-                document.getElementById('checkBtn').disabled = true;
-                document.getElementById('answerInput').disabled = true;
-                document.getElementById('answerInput').classList.add('border-success');
+                resultMsg.innerHTML = '<span class="text-success">✅ ' + data.msg + '</span>';
+                document.getElementById(inputId).disabled = true;
+                document.getElementById(inputId).classList.add('border-success');
                 
-                // Send telemetry
+                // Telemetry
                 const timeSpentSec = Math.floor((new Date() - startTime) / 1000);
                 fetch('/telemetry', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        mission_name: 'Восьмеричная (Кибер-Сейф)',
+                        mission_name: `Восьмеричная (Уровень ${level})`,
                         start_time: startTime.toISOString(),
                         time_spent_sec: timeSpentSec,
                         attempts_count: attemptsCount,
@@ -103,13 +161,12 @@
                     })
                 });
 
-                setTimeout(() => location.reload(), 3000);
             } else {
                 resultMsg.innerHTML = '<span class="text-danger">❌ ' + data.msg + '</span>';
-                document.getElementById('answerInput').value = '';
-                document.getElementById('answerInput').classList.add('border-danger');
+                document.getElementById(inputId).value = '';
+                document.getElementById(inputId).classList.add('border-danger');
             }
         });
-    });
+    }
 </script>
 {% endblock %}

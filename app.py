@@ -237,26 +237,47 @@ def teacher():
 def lesson_octal():
     if 'student_name' not in session: return redirect('/')
     
-    decimal_number = random.randint(100, 500)
-    octal_answer = oct(decimal_number)[2:]
+    # Уровень 1 (Базовый): Из 10 в 8
+    lvl1_dec = random.randint(50, 300)
+    session['octal_lvl1_ans'] = oct(lvl1_dec)[2:]
     
-    session['octal_task_decimal'] = decimal_number
-    session['octal_task_answer'] = octal_answer
+    # Уровень 2 (Средний): Из 2 в 8 (Триады)
+    lvl2_oct = oct(random.randint(64, 511))[2:] # 3 octal digits
+    lvl2_bin = bin(int(lvl2_oct, 8))[2:]
+    session['octal_lvl2_ans'] = lvl2_oct
     
-    return render_template('octal.html', decimal_number=decimal_number)
+    # Уровень 3 (Сложный): Поиск ошибки
+    triads = [random.randint(0, 7) for _ in range(3)]
+    bin_str = "".join([bin(t)[2:].zfill(3) for t in triads])
+    bug_index = random.randint(0, 2)
+    wrong_digit = (triads[bug_index] + random.randint(1, 6)) % 8
+    fake_octal = list(map(str, triads))
+    fake_octal[bug_index] = str(wrong_digit)
+    fake_octal_str = "".join(fake_octal)
+    
+    session['octal_lvl3_ans'] = str(triads[bug_index]) # правильная цифра на месте ошибки
+    
+    return render_template('octal.html', 
+                           lvl1_dec=lvl1_dec, 
+                           lvl2_bin=lvl2_bin,
+                           lvl3_bin=bin_str,
+                           lvl3_fake=fake_octal_str)
 
-@app.route('/check_octal', methods=['POST'])
-def check_octal():
+@app.route('/check_octal_level', methods=['POST'])
+def check_octal_level():
     if 'student_name' not in session: return jsonify({"error": "No session"})
     
-    user_answer = request.json.get('answer', '')
-    correct_answer = session.get('octal_task_answer', '')
+    data = request.json
+    level = str(data.get('level', '1'))
+    user_answer = str(data.get('answer', '')).strip()
     
-    if str(user_answer).strip() == str(correct_answer):
-        log_action(session['student_name'], f"Урок 8кл (Восьмеричная): [ВЕРНО] Перевел {session.get('octal_task_decimal')} в {correct_answer}.")
-        return jsonify({"success": True, "msg": "Доступ разрешен! Сейф открыт."})
+    correct_answer = str(session.get(f'octal_lvl{level}_ans', ''))
+    
+    if user_answer == correct_answer:
+        log_action(session['student_name'], f"Урок 8кл (Ур {level}): [ВЕРНО] Ответ: {correct_answer}")
+        return jsonify({"success": True, "msg": "Доступ разрешен!"})
     else:
-        log_action(session['student_name'], f"Урок 8кл (Восьмеричная): [ОШИБКА] Ввел {user_answer} вместо {correct_answer} для {session.get('octal_task_decimal')}.")
+        log_action(session['student_name'], f"Урок 8кл (Ур {level}): [ОШИБКА] Ввел {user_answer} вместо {correct_answer}")
         return jsonify({"success": False, "msg": "Ошибка! Код не подходит."})
 
 if __name__ == '__main__':
