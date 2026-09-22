@@ -3,15 +3,22 @@
 <div class="row justify-content-center">
     <div class="col-md-6 col-lg-4">
         <div class="card cyber-card text-center p-4 mt-5">
-            <h2 class="cyber-text mb-4">ВХОД В СИСТЕМУ</h2>
+            <h2 class="cyber-text mb-4">АВТОРИЗАЦИЯ</h2>
             {% if error %}
             <div class="alert alert-danger">{{ error }}</div>
             {% endif %}
             <form method="POST">
                 <div class="mb-3">
-                    <input type="text" name="student_name" class="form-control bg-dark text-white border-secondary text-center" placeholder="Введите ваше имя" required autofocus>
+                    <input type="text" name="student_name" class="form-control bg-dark text-white border-secondary text-center mb-3" placeholder="Введите ваше имя" required autofocus>
+                    
+                    <select name="grade" class="form-select bg-dark text-white border-secondary text-center" required>
+                        <option value="" disabled selected>-- Выберите класс --</option>
+                        <option value="8">8 Класс (Системы счисления)</option>
+                        <option value="11">11 Класс (Теория кодирования)</option>
+                        <option value="teacher">Я учитель</option>
+                    </select>
                 </div>
-                <button type="submit" class="btn btn-outline-success w-100 fw-bold">АВТОРИЗАЦИЯ</button>
+                <button type="submit" class="btn btn-outline-success w-100 fw-bold">ВОЙТИ В СИСТЕМУ</button>
             </form>
         </div>
     </div>

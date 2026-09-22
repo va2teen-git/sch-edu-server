@@ -75,15 +75,24 @@ def telemetry():
 def login():
     if request.method == 'POST':
         name = request.form.get('student_name', '').strip()
-        if not name:
-            return render_template('login.html', error="Имя не может быть пустым")
+        grade = request.form.get('grade', '')
         
-        session['student_name'] = name
+        if not name or not grade:
+            return render_template('login.html', error="Заполните все поля")
         
-        if name == '#учитель#':
-            return redirect('/teacher')
-            
-        log_action(name, "--- ВОШЕЛ В СИСТЕМУ ---")
+        if grade == 'teacher' or name == '#учитель#':
+            if name == '#учитель#':
+                session['student_name'] = '#учитель#'
+                session['grade'] = 'teacher'
+                return redirect('/teacher')
+            else:
+                return render_template('login.html', error="Неверный код доступа учителя")
+                
+        full_name = f"{name} ({grade} кл)"
+        session['student_name'] = full_name
+        session['grade'] = grade
+        
+        log_action(full_name, "--- ВОШЕЛ В СИСТЕМУ ---")
         session['m1_correct'] = 0
         session['m2_correct'] = 0
         return redirect('/menu')
@@ -93,7 +102,7 @@ def login():
 @app.route('/menu')
 def menu():
     if 'student_name' not in session: return redirect('/')
-    return render_template('menu.html', name=session['student_name'])
+    return render_template('menu.html', name=session['student_name'], grade=session.get('grade', '8'))
 
 @app.route('/theory')
 def theory():
