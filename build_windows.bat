@@ -4,7 +4,7 @@ echo Building sch-edu-server for Windows (Zero-Dependency)
 echo ==============================================
 
 :: Ensure PyInstaller is installed
-pip install pyinstaller flask flask-sqlalchemy
+pip install pyinstaller flask flask-sqlalchemy waitress
 
 :: Clean previous builds
 if exist build rmdir /s /q build

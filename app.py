@@ -281,4 +281,10 @@ def check_octal_level():
         return jsonify({"success": False, "msg": "Ошибка! Код не подходит."})
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    from waitress import serve
+    print("=====================================================")
+    print("🚀 M.A.S.T.E.R. Server is running (Production Mode)")
+    print("🌐 Open http://localhost:5000 in your browser.")
+    print("🛑 Press CTRL+C to stop the server.")
+    print("=====================================================")
+    serve(app, host='0.0.0.0', port=5000, threads=16)
