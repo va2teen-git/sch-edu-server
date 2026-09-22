@@ -2,11 +2,13 @@ import sys
 import os
 from flask import Flask, render_template, request, redirect, session, jsonify
 from flask_sqlalchemy import SQLAlchemy
+from flask_session import Session
 from sqlalchemy import event
 from sqlalchemy.engine import Engine
 from logic import generate_random_bits, repetition_encode, introduce_noise, repetition_decode, hamming_encode, calculate_syndrome, add_parity_bit
 from datetime import datetime
 import random
+import secrets
 
 if getattr(sys, 'frozen', False):
     template_folder = os.path.join(sys._MEIPASS, 'templates')
@@ -15,7 +17,8 @@ if getattr(sys, 'frozen', False):
 else:
     app = Flask(__name__)
 
-app.secret_key = 'super_secret_key_123'
+# Generating a secure random secret key for the server instance
+app.secret_key = secrets.token_hex(32)
 
 old_db_path = os.path.join(os.getcwd(), 'hamming_logs.db')
 new_db_path = os.path.join(os.getcwd(), 'school_data.db')
@@ -34,6 +37,13 @@ def set_sqlite_pragma(dbapi_connection, connection_record):
     cursor.close()
 
 db = SQLAlchemy(app)
+
+# Настройка серверных сессий
+app.config['SESSION_TYPE'] = 'sqlalchemy'
+app.config['SESSION_SQLALCHEMY'] = db
+app.config['SESSION_USE_SIGNER'] = True
+app.config['SESSION_PERMANENT'] = False
+Session(app)
 
 class LogEvent(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -244,6 +254,40 @@ def teacher():
         students[attempt.student_name]['attempts'].append(attempt)
         
     return render_template('teacher.html', students=students)
+
+@app.route('/lesson/grade11/codes')
+def lesson_codes():
+    if 'student_name' not in session: return redirect('/')
+    
+    # Уровень 1 (Бит четности)
+    data0 = generate_random_bits(4)
+    encoded0 = add_parity_bit(data0)
+    has_error = random.choice([True, False])
+    task0_bits = introduce_noise(encoded0, 1) if has_error else encoded0
+    session['m0_task'] = task0_bits
+    session['m0_has_error'] = has_error
+    
+    # Уровень 2 (Код с повторением)
+    data_bit1 = generate_random_bits(1)
+    encoded1 = repetition_encode(data_bit1)
+    noisy1 = introduce_noise(encoded1, 1)
+    session['m1_task'] = noisy1
+    session['m1_answer'] = data_bit1[0]
+    
+    # Уровень 3 (Код Хэмминга)
+    data2 = generate_random_bits(4)
+    encoded2 = hamming_encode(data2)
+    noisy2 = introduce_noise(encoded2, 1)
+    syndrome2, _ = calculate_syndrome(noisy2)
+    session['m2_task'] = noisy2
+    session['m2_syndrome'] = syndrome2
+    
+    log_action(session['student_name'], f"Урок 11кл: Выданы задачи. Хэмминг поз: {syndrome2}")
+    
+    return render_template('codes11.html', 
+                           m0_task=task0_bits, m0_correct=session.get('m0_correct', 0),
+                           m1_task=noisy1, m1_correct=session.get('m1_correct', 0),
+                           m2_task=noisy2, m2_correct=session.get('m2_correct', 0))
 
 @app.route('/lesson/grade8/octal')
 def lesson_octal():

@@ -5,19 +5,24 @@
         <h1 class="cyber-text mb-4">ДОБРО ПОЖАЛОВАТЬ, {{ name }}</h1>
         
         {% if grade == '11' %}
-            <p class="lead text-light mb-5">Межзвездная связь нестабильна. Ваша задача - восстановить поврежденные сигналы с помощью теории кодирования (Курс 11 класса).</p>
-            
-            <div class="d-grid gap-4 col-md-8 mx-auto">
-                <a href="/theory" class="btn btn-primary btn-lg p-3 fw-bold">📖 БАЗА ЗНАНИЙ (ТЕОРИЯ)</a>
-                <a href="/mission_parity" class="btn btn-outline-success btn-lg p-3 fw-bold">🔎 МИССИЯ 0: БИТ ЧЕТНОСТИ</a>
-                <a href="/mission1" class="btn btn-outline-info btn-lg p-3 fw-bold">🚀 МИССИЯ 1: КОД С ПОВТОРЕНИЕМ</a>
-                <a href="/mission2" class="btn btn-outline-warning btn-lg p-3 fw-bold">🛰️ МИССИЯ 2: КОД ХЭММИНГА</a>
+            <div class="list-group col-md-8 mx-auto text-start mt-4">
+                <a href="/lesson/grade11/codes" class="list-group-item list-group-item-action list-group-item-dark d-flex justify-content-between align-items-center p-3 fs-5">
+                    <div>
+                        <span class="badge bg-secondary me-2">Урок 9</span>
+                        Практическая работа по теме "Помехоустойчивые коды"
+                    </div>
+                    <span>🚀</span>
+                </a>
             </div>
         {% else %}
-            <p class="lead text-light mb-5">Вам предстоит погрузиться в машинные коды и системы счисления (Курс 8 класса).</p>
-            
-            <div class="d-grid gap-4 col-md-8 mx-auto">
-                <a href="/lesson/grade8/octal" class="btn btn-outline-danger btn-lg p-3 fw-bold">🎓 8 КЛАСС: ВОСЬМЕРИЧНАЯ СИСТЕМА (СЕЙФ)</a>
+            <div class="list-group col-md-8 mx-auto text-start mt-4">
+                <a href="/lesson/grade8/octal" class="list-group-item list-group-item-action list-group-item-dark d-flex justify-content-between align-items-center p-3 fs-5">
+                    <div>
+                        <span class="badge bg-secondary me-2">Урок 4</span>
+                        Восьмеричная система счисления
+                    </div>
+                    <span>🔓</span>
+                </a>
             </div>
         {% endif %}
     </div>

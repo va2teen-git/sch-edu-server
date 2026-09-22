@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CS-Academy | Информатика</title>
+    <title>edu-server</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         body { font-family: 'Courier New', Courier, monospace; background-color: #121212; }
@@ -18,8 +18,29 @@
             background: rgba(25, 25, 35, 0.8); 
             backdrop-filter: blur(10px); 
             border: 1px solid rgba(255, 255, 255, 0.1); 
-            border-radius: 20px; 
             box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+        }
+
+        /* Строгий дизайн без скруглений для всего проекта */
+        * {
+            border-radius: 0 !important;
+        }
+
+        /* Аккуратное разделение вкладок */
+        .nav-tabs .nav-item {
+            margin-right: 6px;
+            margin-bottom: -1px;
+        }
+        .nav-tabs .nav-link {
+            border: 1px solid #555 !important;
+            background-color: #222 !important;
+            color: #aaa !important;
+        }
+        .nav-tabs .nav-link.active {
+            border-bottom-color: transparent !important;
+            background-color: #1e1e1e !important; /* Соответствует цвету карточки */
+            color: #fff !important;
+            font-weight: bold;
         }
     </style>
 </head>
@@ -27,15 +48,7 @@
     {% if not hide_navbar %}
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark border-bottom border-secondary">
         <div class="container-fluid">
-            {% if session.get('grade') == '11' %}
-                <a class="navbar-brand cyber-text fw-bold" href="/menu">🛰️ Interstellar Signal HQ</a>
-            {% elif session.get('grade') == '8' %}
-                <a class="navbar-brand text-danger fw-bold" href="/menu">🔒 Cyber-Safe (Системы счисления)</a>
-            {% elif session.get('grade') == 'teacher' %}
-                <a class="navbar-brand text-warning fw-bold" href="/teacher">🛡️ M.A.S.T.E.R. DASHBOARD</a>
-            {% else %}
-                <a class="navbar-brand text-info fw-bold" href="/">Школьный Сервер Информатики</a>
-            {% endif %}
+            <!-- Логотип удален для минимализма -->
             
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
@@ -44,9 +57,7 @@
                 <ul class="navbar-nav ms-auto">
                     {% if session.get('student_name') and session.get('grade') != 'teacher' %}
                         <li class="nav-item"><a class="nav-link" href="/menu">Главное меню</a></li>
-                        {% if session.get('grade') == '11' %}
-                        <li class="nav-item"><a class="nav-link" href="/theory">Теория</a></li>
-                        {% endif %}
+
                         <li class="nav-item"><a class="nav-link text-danger" href="/">Выйти ({{ session['student_name'] }})</a></li>
                     {% elif session.get('grade') == 'teacher' %}
                         <li class="nav-item"><a class="nav-link text-danger" href="/">Выйти из панели</a></li>

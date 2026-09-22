@@ -1,11 +1,24 @@
 {% extends "layout.html" %}
 
 {% block content %}
+<style>
+    body { background-color: #0f172a; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+    .lesson-card { background: #1e293b; border: 1px solid #334155; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
+    .lesson-title { color: #38bdf8; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; }
+    .theory-box { background: #0f172a; border-left: 4px solid #38bdf8; border-radius: 4px; }
+    
+
+    
+    .safe-panel { background: #0f172a; border: 2px dashed #475569; border-radius: 8px; }
+    .btn-action { transition: all 0.2s ease; }
+    .btn-action:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
+</style>
+
 <div class="row">
     <!-- Theory Block -->
     <div class="col-md-7">
-        <div class="card cyber-card p-4 text-white mb-4">
-            <h2 class="cyber-text">📚 Урок 4: Восьмеричная система счисления</h2>
+        <div class="card lesson-card p-4 text-white mb-4">
+            <h2 class="lesson-title">📚 Урок 4: Восьмеричная система счисления</h2>
             <hr class="border-secondary">
             
             <h5>1. Что такое восьмеричная система?</h5>
