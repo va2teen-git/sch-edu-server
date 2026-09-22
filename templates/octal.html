@@ -1,0 +1,91 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="row">
+    <!-- Theory Block -->
+    <div class="col-md-7">
+        <div class="card cyber-card p-4 text-white">
+            <h2 class="cyber-text">📚 Урок 4: Восьмеричная система счисления</h2>
+            <hr class="border-secondary">
+            
+            <h5>1. Основные понятия</h5>
+            <p>
+                <b>Система счисления</b> — это правила записи чисел. 
+                В восьмеричной системе основание равно <b>8</b>.
+                Алфавит (цифры): <b>0, 1, 2, 3, 4, 5, 6, 7</b>.<br>
+                <span class="text-warning">Внимание: Цифр 8 и 9 не существует! Число 185<sub>8</sub> — это ошибка.</span>
+            </p>
+
+            <h5>2. Перевод из 10-й в 8-ю систему</h5>
+            <p>Делим десятичное число на 8 уголоком. Остаток — это цифра. Полученное частное снова делим на 8, и так до тех пор, пока частное не станет равным нулю. Искомое число записывается из остатков <b>снизу вверх (в обратном порядке)</b>.</p>
+            <div class="bg-dark p-2 rounded border border-secondary mb-3">
+                <small>Пример перевода 101<sub>10</sub> в 8-ю:</small><br>
+                101 : 8 = 12 (остаток <b>5</b>)<br>
+                12 : 8 = 1 (остаток <b>4</b>)<br>
+                1 : 8 = 0 (остаток <b>1</b>)<br>
+                Ответ: <b>145<sub>8</sub></b>
+            </div>
+
+            <h5>3. Связь 8-й и 2-й систем (Метод триад)</h5>
+            <p>Поскольку 8 = 2<sup>3</sup>, каждая восьмеричная цифра может быть представлена ровно тремя двоичными цифрами (триадой).<br>
+                <b>0</b>=000, <b>1</b>=001, <b>2</b>=010, <b>3</b>=011, <b>4</b>=100, <b>5</b>=101, <b>6</b>=110, <b>7</b>=111.
+            </p>
+        </div>
+    </div>
+
+    <!-- Interactive Task -->
+    <div class="col-md-5">
+        <div class="card cyber-card p-4 text-center">
+            <h3 class="text-danger">🚨 Взлом Кибер-Сейфа</h3>
+            <p class="text-muted">Введи правильный код, чтобы разблокировать доступ к серверу.</p>
+            
+            <div class="alert alert-dark border-secondary">
+                <h4 class="mb-0">PIN: <span class="cyber-text">{{ decimal_number }}</span><sub>10</sub></h4>
+                <small>Переведи это десятичное число в восьмеричную систему на черновике, чтобы получить код от сейфа.</small>
+            </div>
+
+            <div class="my-4">
+                <input type="text" id="answerInput" class="form-control text-center bg-dark text-white border-secondary fs-3" placeholder="Введи восьмеричный код" maxlength="6">
+            </div>
+
+            <button id="checkBtn" class="btn btn-outline-success btn-lg w-100">ВЗЛОМАТЬ СЕЙФ</button>
+            <div id="resultMsg" class="mt-3 fw-bold fs-5"></div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.getElementById('checkBtn').addEventListener('click', function() {
+        const answer = document.getElementById('answerInput').value.trim();
+        const resultMsg = document.getElementById('resultMsg');
+        
+        if(answer === '') {
+            resultMsg.innerHTML = '<span class="text-warning">Введите код!</span>';
+            return;
+        }
+
+        fetch('/check_octal', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ answer: answer })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if(data.success) {
+                resultMsg.innerHTML = '<span class="text-success">🔓 ' + data.msg + '</span>';
+                document.getElementById('checkBtn').disabled = true;
+                document.getElementById('answerInput').disabled = true;
+                document.getElementById('answerInput').classList.add('border-success');
+                // Reload page after 3 seconds for a new task
+                setTimeout(() => location.reload(), 3000);
+            } else {
+                resultMsg.innerHTML = '<span class="text-danger">❌ ' + data.msg + '</span>';
+                document.getElementById('answerInput').value = '';
+                document.getElementById('answerInput').classList.add('border-danger');
+            }
+        });
+    });
+</script>
+{% endblock %}

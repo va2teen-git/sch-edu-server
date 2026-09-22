@@ -1,13 +1,31 @@
+import sys
+import os
 from flask import Flask, render_template, request, redirect, session, jsonify
 from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy import event
+from sqlalchemy.engine import Engine
 from logic import generate_random_bits, repetition_encode, introduce_noise, repetition_decode, hamming_encode, calculate_syndrome, add_parity_bit
 from datetime import datetime
-import os
+import random
 
-app = Flask(__name__)
+if getattr(sys, 'frozen', False):
+    template_folder = os.path.join(sys._MEIPASS, 'templates')
+    static_folder = os.path.join(sys._MEIPASS, 'static')
+    app = Flask(__name__, template_folder=template_folder, static_folder=static_folder)
+else:
+    app = Flask(__name__)
+
 app.secret_key = 'super_secret_key_123'
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///hamming_logs.db'
+db_path = os.path.join(os.getcwd(), 'hamming_logs.db')
+app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{db_path}'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+@event.listens_for(Engine, "connect")
+def set_sqlite_pragma(dbapi_connection, connection_record):
+    cursor = dbapi_connection.cursor()
+    cursor.execute("PRAGMA journal_mode=WAL")
+    cursor.execute("PRAGMA synchronous=NORMAL")
+    cursor.close()
 
 db = SQLAlchemy(app)
 
@@ -179,6 +197,32 @@ def teacher():
         students[log.student_name].append(log)
         
     return render_template('teacher.html', students=students)
+
+@app.route('/lesson/grade8/octal')
+def lesson_octal():
+    if 'student_name' not in session: return redirect('/')
+    
+    decimal_number = random.randint(100, 500)
+    octal_answer = oct(decimal_number)[2:]
+    
+    session['octal_task_decimal'] = decimal_number
+    session['octal_task_answer'] = octal_answer
+    
+    return render_template('octal.html', decimal_number=decimal_number)
+
+@app.route('/check_octal', methods=['POST'])
+def check_octal():
+    if 'student_name' not in session: return jsonify({"error": "No session"})
+    
+    user_answer = request.json.get('answer', '')
+    correct_answer = session.get('octal_task_answer', '')
+    
+    if str(user_answer).strip() == str(correct_answer):
+        log_action(session['student_name'], f"Урок 8кл (Восьмеричная): [ВЕРНО] Перевел {session.get('octal_task_decimal')} в {correct_answer}.")
+        return jsonify({"success": True, "msg": "Доступ разрешен! Сейф открыт."})
+    else:
+        log_action(session['student_name'], f"Урок 8кл (Восьмеричная): [ОШИБКА] Ввел {user_answer} вместо {correct_answer} для {session.get('octal_task_decimal')}.")
+        return jsonify({"success": False, "msg": "Ошибка! Код не подходит."})
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)
