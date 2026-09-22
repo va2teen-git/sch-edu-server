@@ -16,8 +16,14 @@ else:
     app = Flask(__name__)
 
 app.secret_key = 'super_secret_key_123'
-db_path = os.path.join(os.getcwd(), 'hamming_logs.db')
-app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{db_path}'
+
+old_db_path = os.path.join(os.getcwd(), 'hamming_logs.db')
+new_db_path = os.path.join(os.getcwd(), 'school_data.db')
+
+if os.path.exists(old_db_path) and not os.path.exists(new_db_path):
+    os.rename(old_db_path, new_db_path)
+
+app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{new_db_path}'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 @event.listens_for(Engine, "connect")
