@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Interstellar Signal: Код Хэмминга</title>
+    <title>CS-Academy | Информатика</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         body { font-family: 'Courier New', Courier, monospace; background-color: #121212; }
@@ -11,28 +11,52 @@
         .cyber-card { background-color: #1e1e1e; border: 1px solid #333; }
         .nav-link { color: #aaa; }
         .nav-link:hover { color: #fff; }
+        
+        /* Modern theme for generic pages like Login */
+        .modern-font { font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; }
+        .glass-card { 
+            background: rgba(25, 25, 35, 0.8); 
+            backdrop-filter: blur(10px); 
+            border: 1px solid rgba(255, 255, 255, 0.1); 
+            border-radius: 20px; 
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+        }
     </style>
 </head>
-<body>
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+<body class="{% if hide_navbar %}modern-font{% endif %}">
+    {% if not hide_navbar %}
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark border-bottom border-secondary">
         <div class="container-fluid">
-            <a class="navbar-brand cyber-text fw-bold" href="#">🛰️ Interstellar Signal HQ</a>
+            {% if session.get('grade') == '11' %}
+                <a class="navbar-brand cyber-text fw-bold" href="/menu">🛰️ Interstellar Signal HQ</a>
+            {% elif session.get('grade') == '8' %}
+                <a class="navbar-brand text-danger fw-bold" href="/menu">🔒 Cyber-Safe (Системы счисления)</a>
+            {% elif session.get('grade') == 'teacher' %}
+                <a class="navbar-brand text-warning fw-bold" href="/teacher">🛡️ M.A.S.T.E.R. DASHBOARD</a>
+            {% else %}
+                <a class="navbar-brand text-info fw-bold" href="/">Школьный Сервер Информатики</a>
+            {% endif %}
+            
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto">
-                    {% if session.get('student_name') and session.get('student_name') != '#учитель#' %}
-                    <li class="nav-item"><a class="nav-link" href="/menu">В меню</a></li>
-                    <li class="nav-item"><a class="nav-link" href="/theory">Теория</a></li>
-                    <li class="nav-item"><a class="nav-link" href="/">Выход ({{ session['student_name'] }})</a></li>
-                    {% elif session.get('student_name') == '#учитель#' %}
-                    <li class="nav-item"><a class="nav-link" href="/">Выход (Кабинет Учителя)</a></li>
+                    {% if session.get('student_name') and session.get('grade') != 'teacher' %}
+                        <li class="nav-item"><a class="nav-link" href="/menu">Главное меню</a></li>
+                        {% if session.get('grade') == '11' %}
+                        <li class="nav-item"><a class="nav-link" href="/theory">Теория</a></li>
+                        {% endif %}
+                        <li class="nav-item"><a class="nav-link text-danger" href="/">Выйти ({{ session['student_name'] }})</a></li>
+                    {% elif session.get('grade') == 'teacher' %}
+                        <li class="nav-item"><a class="nav-link text-danger" href="/">Выйти из панели</a></li>
                     {% endif %}
                 </ul>
             </div>
         </div>
     </nav>
+    {% endif %}
+
     <div class="container mt-5">
         {% block content %}{% endblock %}
     </div>

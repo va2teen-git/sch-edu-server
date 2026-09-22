@@ -1,23 +1,53 @@
+{% set hide_navbar = True %}
 {% extends "layout.html" %}
+
 {% block content %}
-<div class="row justify-content-center">
+<style>
+    /* Unique background for login */
+    body {
+        background: linear-gradient(135deg, #1f1c2c 0%, #928DAB 100%);
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0;
+    }
+    .container {
+        margin-top: 0 !important;
+    }
+</style>
+
+<div class="row justify-content-center w-100">
     <div class="col-md-6 col-lg-4">
-        <div class="card cyber-card text-center p-4 mt-5">
-            <h2 class="cyber-text mb-4">АВТОРИЗАЦИЯ</h2>
+        <div class="card glass-card text-center p-5">
+            <div class="mb-4">
+                <span style="font-size: 3rem;">🎓</span>
+                <h3 class="text-white fw-bold mt-2">CS-Academy</h3>
+                <p class="text-light opacity-75 small">Школьная платформа по информатике</p>
+            </div>
+
             {% if error %}
-            <div class="alert alert-danger">{{ error }}</div>
+            <div class="alert alert-danger py-2 rounded-pill small">{{ error }}</div>
             {% endif %}
+
             <form method="POST">
-                <div class="mb-3">
-                    <input type="text" name="student_name" class="form-control bg-dark text-white border-secondary text-center mb-3" placeholder="Введите ваше имя" required autofocus>
-                    
-                    <select name="grade" class="form-select bg-dark text-white border-secondary text-center" required>
-                        <option value="" disabled selected>-- Выберите класс --</option>
+                <div class="mb-4 text-start">
+                    <label class="form-label text-light small ms-2">Ваше имя и фамилия</label>
+                    <input type="text" name="student_name" class="form-control bg-dark bg-opacity-50 text-white border-0 rounded-pill px-4 py-2" placeholder="Иван Иванов" required autofocus>
+                </div>
+                
+                <div class="mb-4 text-start">
+                    <label class="form-label text-light small ms-2">Класс</label>
+                    <select name="grade" class="form-select bg-dark bg-opacity-50 text-white border-0 rounded-pill px-4 py-2" required>
+                        <option value="" disabled selected>-- Выберите программу --</option>
                         <option value="8">8 Класс (Системы счисления)</option>
                         <option value="11">11 Класс (Теория кодирования)</option>
                     </select>
                 </div>
-                <button type="submit" class="btn btn-outline-success w-100 fw-bold">ВОЙТИ В СИСТЕМУ</button>
+
+                <button type="submit" class="btn btn-primary w-100 rounded-pill py-2 fw-bold" style="background: linear-gradient(90deg, #00c6ff 0%, #0072ff 100%); border: none;">
+                    ВОЙТИ НА УРОК
+                </button>
             </form>
         </div>
     </div>
