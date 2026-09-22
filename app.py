@@ -35,6 +35,16 @@ class LogEvent(db.Model):
     timestamp = db.Column(db.DateTime, default=datetime.utcnow)
     action = db.Column(db.String(500), nullable=False)
 
+class TaskAttempt(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    student_name = db.Column(db.String(100), nullable=False)
+    mission_name = db.Column(db.String(100), nullable=False)
+    start_time = db.Column(db.String(50), nullable=False)
+    time_spent_sec = db.Column(db.Integer, nullable=False)
+    attempts_count = db.Column(db.Integer, default=0)
+    success = db.Column(db.Boolean, default=False)
+    action_log = db.Column(db.Text, nullable=False) # JSON string
+
 with app.app_context():
     db.create_all()
 
@@ -43,6 +53,23 @@ def log_action(name, action_text):
         new_log = LogEvent(student_name=name, action=action_text)
         db.session.add(new_log)
         db.session.commit()
+
+@app.route('/telemetry', methods=['POST'])
+def telemetry():
+    if 'student_name' not in session: return jsonify({"error": "No session"})
+    data = request.json
+    attempt = TaskAttempt(
+        student_name=session['student_name'],
+        mission_name=data.get('mission_name', 'Unknown'),
+        start_time=data.get('start_time', ''),
+        time_spent_sec=data.get('time_spent_sec', 0),
+        attempts_count=data.get('attempts_count', 0),
+        success=data.get('success', False),
+        action_log=data.get('action_log', '[]')
+    )
+    db.session.add(attempt)
+    db.session.commit()
+    return jsonify({"status": "ok"})
 
 @app.route('/', methods=['GET', 'POST'])
 def login():
@@ -189,12 +216,20 @@ def teacher():
         return redirect('/')
         
     logs = LogEvent.query.order_by(LogEvent.timestamp.desc()).all()
+    attempts = TaskAttempt.query.order_by(TaskAttempt.id.desc()).all()
     
     students = {}
     for log in logs:
         if log.student_name not in students:
-            students[log.student_name] = []
-        students[log.student_name].append(log)
+            students[log.student_name] = {'logs': [], 'attempts': []}
+        students[log.student_name]['logs'].append(log)
+        
+    for attempt in attempts:
+        if attempt.student_name not in students:
+            students[attempt.student_name] = {'logs': [], 'attempts': []}
+        import json
+        attempt.action_log_parsed = json.loads(attempt.action_log)
+        students[attempt.student_name]['attempts'].append(attempt)
         
     return render_template('teacher.html', students=students)
 

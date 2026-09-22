@@ -2,15 +2,15 @@
 {% block content %}
 <div class="row">
     <div class="col-12 text-center mb-4">
-        <h1 class="text-danger fw-bold">🛡️ M.A.S.T.E.R. DASHBOARD (WEB) 🛡️</h1>
-        <p class="text-light">Мониторинг траекторий учеников в реальном времени</p>
+        <h1 class="text-danger fw-bold">🛡️ M.A.S.T.E.R. DASHBOARD 🛡️</h1>
+        <p class="text-light">Детальная аналитика решений учеников (Прозрачная проверка)</p>
     </div>
 </div>
 
 <div class="row">
-    <div class="col-md-4">
+    <div class="col-md-3">
         <div class="card cyber-card p-3 mb-4">
-            <h4 class="text-info border-bottom border-secondary pb-2">Список учеников</h4>
+            <h4 class="text-info border-bottom border-secondary pb-2">Ученики</h4>
             <div class="list-group list-group-flush bg-transparent" id="student-list" role="tablist">
                 {% if not students %}
                 <p class="text-muted mt-3">Пока никто не подключился...</p>
@@ -23,7 +23,6 @@
                    href="#list-{{ loop.index }}" 
                    role="tab">
                     {{ student_name }}
-                    <span class="badge bg-secondary float-end">{{ students[student_name]|length }} логов</span>
                 </a>
                 {% endfor %}
             </div>
@@ -31,36 +30,84 @@
         </div>
     </div>
     
-    <div class="col-md-8">
+    <div class="col-md-9">
         <div class="card cyber-card p-4 h-100">
             <div class="tab-content" id="nav-tabContent">
                 {% if not students %}
                 <div class="text-center text-muted mt-5">Ожидание данных...</div>
                 {% endif %}
                 
-                {% for student_name, logs in students.items() %}
+                {% for student_name, data in students.items() %}
                 <div class="tab-pane fade {% if loop.first %}show active{% endif %}" id="list-{{ loop.index }}" role="tabpanel">
-                    <h3 class="text-warning mb-4">Траектория: <span class="text-white">{{ student_name }}</span></h3>
+                    <h3 class="text-warning mb-3">Профиль: <span class="text-white">{{ student_name }}</span></h3>
                     
-                    <div class="bg-dark p-3 rounded" style="max-height: 600px; overflow-y: auto;">
-                        <table class="table table-dark table-hover font-monospace" style="font-size: 0.9rem;">
-                            <thead>
-                                <tr>
-                                    <th width="20%">Время</th>
-                                    <th>Действие</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for log in logs %}
-                                <tr>
-                                    <td class="text-secondary">{{ log.timestamp.strftime('%H:%M:%S') }}</td>
-                                    <td class="{% if '[ОШИБКА]' in log.action %}text-danger{% elif '[ВЕРНО]' in log.action %}text-success{% else %}text-light{% endif %}">
-                                        {{ log.action }}
-                                    </td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
+                    <ul class="nav nav-pills mb-3 border-bottom border-secondary pb-2" id="pills-tab-{{ loop.index }}" role="tablist">
+                      <li class="nav-item" role="presentation">
+                        <button class="nav-link active btn-sm" data-bs-toggle="pill" data-bs-target="#analytics-{{ loop.index }}" type="button" role="tab">Глубокая аналитика (Телеметрия)</button>
+                      </li>
+                      <li class="nav-item" role="presentation">
+                        <button class="nav-link btn-sm" data-bs-toggle="pill" data-bs-target="#logs-{{ loop.index }}" type="button" role="tab">Общий Лог действий</button>
+                      </li>
+                    </ul>
+
+                    <div class="tab-content" id="pills-tabContent-{{ loop.index }}">
+                        <!-- Analytics Tab -->
+                        <div class="tab-pane fade show active" id="analytics-{{ loop.index }}" role="tabpanel">
+                            {% if not data.attempts %}
+                                <p class="text-muted">Телеметрия по заданиям еще не поступала.</p>
+                            {% endif %}
+                            
+                            {% for attempt in data.attempts %}
+                            <div class="card bg-dark border-secondary mb-3">
+                                <div class="card-header d-flex justify-content-between align-items-center border-secondary">
+                                    <strong>{{ attempt.mission_name }}</strong>
+                                    <span class="badge {% if attempt.success %}bg-success{% else %}bg-danger{% endif %}">
+                                        {% if attempt.success %}Успех{% else %}Сдался{% endif %}
+                                    </span>
+                                </div>
+                                <div class="card-body py-2">
+                                    <div class="row text-muted small mb-2 border-bottom border-secondary pb-2">
+                                        <div class="col">Начало: {{ attempt.start_time[:19].replace('T', ' ') }}</div>
+                                        <div class="col">Затрачено: <span class="text-warning">{{ attempt.time_spent_sec }} сек</span></div>
+                                        <div class="col">Попыток ввода: {{ attempt.attempts_count }}</div>
+                                    </div>
+                                    
+                                    <h6 class="text-info mt-2">Ход решения (Лог вводов):</h6>
+                                    <div class="font-monospace" style="font-size: 0.85rem;">
+                                        {% for act in attempt.action_log_parsed %}
+                                            <div>
+                                                <span class="text-secondary">[{{ act.time[11:19] }}]</span>
+                                                Ввод: <strong class="text-light">"{{ act.input }}"</strong> 
+                                                {% if act.success %}
+                                                    <span class="text-success">✅ (Верно)</span>
+                                                {% else %}
+                                                    <span class="text-danger">❌ (Ошибка)</span>
+                                                {% endif %}
+                                            </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+
+                        <!-- Logs Tab -->
+                        <div class="tab-pane fade" id="logs-{{ loop.index }}" role="tabpanel">
+                            <div class="bg-dark p-2 rounded" style="max-height: 500px; overflow-y: auto;">
+                                <table class="table table-dark table-hover font-monospace m-0" style="font-size: 0.85rem;">
+                                    <tbody>
+                                        {% for log in data.logs %}
+                                        <tr>
+                                            <td class="text-secondary" width="20%">{{ log.timestamp.strftime('%H:%M:%S') }}</td>
+                                            <td class="{% if '[ОШИБКА]' in log.action %}text-danger{% elif '[ВЕРНО]' in log.action %}text-success{% else %}text-light{% endif %}">
+                                                {{ log.action }}
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 {% endfor %}

@@ -57,14 +57,21 @@
 
 {% block scripts %}
 <script>
+    const startTime = new Date();
+    let attemptsCount = 0;
+    let actionLog = [];
+
     document.getElementById('checkBtn').addEventListener('click', function() {
         const answer = document.getElementById('answerInput').value.trim();
         const resultMsg = document.getElementById('resultMsg');
+        const timestamp = new Date().toISOString();
         
         if(answer === '') {
             resultMsg.innerHTML = '<span class="text-warning">Введите код!</span>';
             return;
         }
+
+        attemptsCount++;
 
         fetch('/check_octal', {
             method: 'POST',
@@ -73,12 +80,29 @@
         })
         .then(response => response.json())
         .then(data => {
+            actionLog.push({time: timestamp, input: answer, success: data.success});
+            
             if(data.success) {
                 resultMsg.innerHTML = '<span class="text-success">🔓 ' + data.msg + '</span>';
                 document.getElementById('checkBtn').disabled = true;
                 document.getElementById('answerInput').disabled = true;
                 document.getElementById('answerInput').classList.add('border-success');
-                // Reload page after 3 seconds for a new task
+                
+                // Send telemetry
+                const timeSpentSec = Math.floor((new Date() - startTime) / 1000);
+                fetch('/telemetry', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        mission_name: 'Восьмеричная (Кибер-Сейф)',
+                        start_time: startTime.toISOString(),
+                        time_spent_sec: timeSpentSec,
+                        attempts_count: attemptsCount,
+                        success: true,
+                        action_log: JSON.stringify(actionLog)
+                    })
+                });
+
                 setTimeout(() => location.reload(), 3000);
             } else {
                 resultMsg.innerHTML = '<span class="text-danger">❌ ' + data.msg + '</span>';
