@@ -80,13 +80,10 @@ def login():
         if not name or not grade:
             return render_template('login.html', error="Заполните все поля")
         
-        if grade == 'teacher' or name == '#учитель#':
-            if name == '#учитель#':
-                session['student_name'] = '#учитель#'
-                session['grade'] = 'teacher'
-                return redirect('/teacher')
-            else:
-                return render_template('login.html', error="Неверный код доступа учителя")
+        if name == '#учитель#':
+            session['student_name'] = '#учитель#'
+            session['grade'] = 'teacher'
+            return redirect('/teacher')
                 
         full_name = f"{name} ({grade} кл)"
         session['student_name'] = full_name
