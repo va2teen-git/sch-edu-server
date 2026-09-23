@@ -158,10 +158,37 @@
         </div>
     </div>
 </div>
+<button id="hc-btn" class="btn btn-sm" onclick="toggleHardcore()" style="position: absolute; top: 10px; left: 15px; font-size: 1.5rem; opacity: 0.3; z-index: 1000; border: none; background: transparent; padding: 0;">💀</button>
 {% endblock %}
 
 {% block scripts %}
+<style>
+    @keyframes skullPulse {
+        0% { transform: scale(1) rotate(0deg); filter: drop-shadow(0 0 2px rgba(255,0,0,0.5)); }
+        25% { transform: scale(1.15) rotate(-10deg); filter: drop-shadow(0 0 8px rgba(255,0,0,0.8)); }
+        50% { transform: scale(1.15) rotate(10deg); filter: drop-shadow(0 0 12px rgba(255,0,0,1)); }
+        75% { transform: scale(1.15) rotate(-10deg); filter: drop-shadow(0 0 8px rgba(255,0,0,0.8)); }
+        100% { transform: scale(1) rotate(0deg); filter: drop-shadow(0 0 2px rgba(255,0,0,0.5)); }
+    }
+    .hc-active {
+        animation: skullPulse 1.5s infinite;
+        opacity: 1 !important;
+    }
+</style>
+
 <script>
+    let hardcoreMode = false;
+    function toggleHardcore() {
+        hardcoreMode = !hardcoreMode;
+        const btn = document.getElementById('hc-btn');
+        if(hardcoreMode) {
+            btn.classList.add('hc-active');
+        } else {
+            btn.classList.remove('hc-active');
+            btn.style.opacity = '0.3';
+        }
+    }
+
     // --- ТЕЛЕМЕТРИЯ ---
     const startTimes = {
         'М1 (Ящики)': new Date(),
@@ -288,11 +315,13 @@
                 setTimeout(generateM1, 1500);
             }
         } else {
-            m1_progress = 0;
-            document.getElementById('m1-prog').style.width = '0%';
-            document.getElementById('m1-count').innerText = 0;
-            document.getElementById('tab1-count').innerText = 0;
-            resEl.innerHTML = `<span class="text-danger">❌ Ошибка! На выходе ${val}, а нужно ${m1_target_val}. Прогресс сброшен.</span>`;
+            if (hardcoreMode) {
+                m1_progress = 0;
+            }
+            document.getElementById('m1-prog').style.width = (m1_progress/3*100) + '%';
+            document.getElementById('m1-count').innerText = m1_progress;
+            document.getElementById('tab1-count').innerText = m1_progress;
+            resEl.innerHTML = `<span class="text-danger">❌ Ошибка! На выходе ${val}, а нужно ${m1_target_val}. ${hardcoreMode ? 'Прогресс сброшен.' : 'Попробуйте еще раз!'}</span>`;
             sendTel('М1 (Ящики)', false);
             setTimeout(generateM1, 2000);
         }
@@ -326,11 +355,11 @@
             if(m2_pos < 40 || m2_pos > 60) {
                 clearInterval(m2_interval);
                 m2_running = false;
-                m2_progress = 0;
-                document.getElementById('m2-prog').style.width = '0%';
-                document.getElementById('m2-count').innerText = 0;
-                document.getElementById('tab2-count').innerText = 0;
-                document.getElementById('res2').innerHTML = '<span class="text-danger">❌ СИСТЕМА ВЫШЛА ИЗ СТРОЯ! Вы не справились с управлением. Прогресс сброшен.</span>';
+                if (hardcoreMode) m2_progress = 0;
+                document.getElementById('m2-prog').style.width = (m2_progress/5*100) + '%';
+                document.getElementById('m2-count').innerText = m2_progress;
+                document.getElementById('tab2-count').innerText = m2_progress;
+                document.getElementById('res2').innerHTML = `<span class="text-danger">❌ СИСТЕМА ВЫШЛА ИЗ СТРОЯ! Вы не справились с управлением. ${hardcoreMode ? 'Прогресс сброшен.' : 'Запустите заново.'}</span>`;
                 sendTel('М2 (Баланс ОС)', false);
             } else {
                 m2_timeAlive += 100;
@@ -408,11 +437,11 @@
                 setTimeout(generateM3, 1500);
             }
         } else {
-            m3_progress = 0;
-            document.getElementById('m3-prog').style.width = '0%';
-            document.getElementById('m3-count').innerText = 0;
-            document.getElementById('tab3-count').innerText = 0;
-            resEl.innerHTML = `<span class="text-danger">❌ Ошибка сети! Правильное значение было: ${m3_correct_ans}. Прогресс сброшен.</span>`;
+            if (hardcoreMode) m3_progress = 0;
+            document.getElementById('m3-prog').style.width = (m3_progress/8*100) + '%';
+            document.getElementById('m3-count').innerText = m3_progress;
+            document.getElementById('tab3-count').innerText = m3_progress;
+            resEl.innerHTML = `<span class="text-danger">❌ Ошибка сети! Правильное значение было: ${m3_correct_ans}. ${hardcoreMode ? 'Прогресс сброшен.' : 'Идем дальше.'}</span>`;
             sendTel('М3 (TCP)', false);
             setTimeout(generateM3, 2500);
         }
