@@ -1,0 +1,425 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<style>
+    body { background-color: #050505; color: #d1d5db; font-family: 'Consolas', 'Courier New', monospace; }
+    
+    .panel-header { 
+        background-color: #111; 
+        border-bottom: 1px solid #333; 
+        color: #10b981; 
+        font-weight: bold; 
+        text-transform: uppercase;
+        letter-spacing: 2px;
+    }
+    
+    .cyber-box { background: #0a0a0a; border: 1px solid #222; box-shadow: inset 0 0 10px rgba(0,0,0,0.8); }
+    .glitch-text { color: #fff; text-shadow: 2px 0 red, -2px 0 cyan; }
+    
+    .box-node { display: inline-block; padding: 10px 20px; background: #111; border: 1px solid #10b981; color: #10b981; font-weight: bold; margin: 5px; cursor: pointer; }
+    
+    .progress-container { width: 100%; background-color: #222; border: 1px solid #444; height: 10px; margin-top: 10px; }
+    .progress-bar-fill { height: 100%; background-color: #10b981; width: 0%; transition: width 0.3s; }
+    
+    /* Для мини-игры 2 */
+    .level-container { width: 100%; height: 40px; background: #222; border: 1px solid #555; position: relative; }
+    .level-safe-zone { position: absolute; left: 40%; width: 20%; height: 100%; background: rgba(16, 185, 129, 0.2); border-left: 2px dashed #10b981; border-right: 2px dashed #10b981; }
+    .level-indicator { position: absolute; left: 50%; width: 4px; height: 100%; background: #ef4444; transform: translateX(-50%); transition: left 0.1s; }
+</style>
+
+<div class="row">
+    <!-- ТЕОРИЯ -->
+    <div class="col-md-5" style="max-height: 90vh; overflow-y: auto;">
+        <div class="card cyber-box p-4 mb-4">
+            <h3 class="panel-header pb-2 mb-3"># Урок 10: Системы и управление</h3>
+            
+            <h5 class="text-info mt-3">1. Понятие системы</h5>
+            <p class="small text-muted">
+                <b>Система</b> — это целое, созданное из частей и целенаправленно взаимодействующее с окружающей средой. Любая система состоит из элементов (компонентов) и связей между ними.<br>
+                <b>Подсистема</b> — часть системы, которая сама является системой (например, материнская плата в ПК).<br>
+                <b>Надсистема</b> — более крупная система, куда входит наша (например, локальная сеть для ПК).
+            </p>
+            
+            <h5 class="text-info mt-4">2. Системный эффект (Эмерджентность)</h5>
+            <p class="small text-muted">
+                Главный закон системологии: <i>свойства системы не равны сумме свойств её элементов</i>. При объединении элементов возникают принципиально новые свойства.<br>
+                <b>Пример:</b> Самолет летает. Но ни одно из его крыльев, турбин или кресел по отдельности летать не может. Полет — это эмерджентное свойство системы "Самолет". Точно так же протокол TCP обеспечивает надежную передачу данных поверх ненадежного протокола IP — это системный эффект Интернета.
+            </p>
+            
+            <h5 class="text-info mt-4">3. Модель "Черный ящик"</h5>
+            <p class="small text-muted">
+                Когда система слишком сложна, ее изучают как "черный ящик". Мы не знаем, как она устроена внутри, но мы можем подавать данные на <b>Вход</b> и анализировать <b>Выход</b>. В программировании любая функция из чужой библиотеки — это черный ящик.
+            </p>
+            
+            <h5 class="text-info mt-4">4. Управление и Кибернетика</h5>
+            <p class="small text-muted">
+                Управление — это целенаправленное воздействие на объект. Оно невозможно без обмена информацией.<br>
+                Существует <b>прямая связь</b> (команды от контроллера к объекту) и <b>обратная связь (ОС)</b> (данные о состоянии объекта, идущие назад к контроллеру).
+            </p>
+
+            <h5 class="text-info mt-4">5. Виды Обратной Связи</h5>
+            <ul class="small text-muted">
+                <li><b class="text-success">Отрицательная ОС:</b> <i>Стабилизирует систему.</i> Если параметр отклоняется от нормы, отрицательная ОС генерирует сигнал, толкающий параметр обратно. Пример: Термостат включает охлаждение при нагреве. Алгоритм TCP снижает скорость при потере пакетов.</li>
+                <li><b class="text-danger">Положительная ОС:</b> <i>Дестабилизирует систему.</i> Усиливает отклонение. Если параметр растет, положительная ОС заставляет его расти еще быстрее. Пример: Цепная ядерная реакция, микрофон, поднесенный к колонке (свист нарастает), паника на бирже.</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- ПРАКТИКА -->
+    <div class="col-md-7">
+        <ul class="nav nav-tabs mb-3" id="sysTabs" role="tablist">
+            <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#t1">1. Черный ящик (<span id="tab1-count">0</span>/3)</button></li>
+            <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#t2">2. Баланс (<span id="tab2-count">0</span>/5)</button></li>
+            <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#t3">3. TCP Контроль (<span id="tab3-count">0</span>/8)</button></li>
+        </ul>
+
+        <div class="tab-content">
+            
+            <!-- Задание 1 -->
+            <div class="tab-pane fade show active" id="t1">
+                <div class="card cyber-box p-4 border-info">
+                    <h4 class="text-info mb-3">Миссия 1: Цепь чёрных ящиков</h4>
+                    <p class="small text-muted">Определите правильную последовательность подключения трех неизвестных алгоритмов, чтобы преобразовать входной сигнал в целевой выходной.</p>
+                    
+                    <div class="d-flex justify-content-between mb-4 text-center">
+                        <div><div class="text-secondary small">Ящик А</div><div class="box-node" id="hintA">???</div></div>
+                        <div><div class="text-secondary small">Ящик Б</div><div class="box-node" id="hintB">???</div></div>
+                        <div><div class="text-secondary small">Ящик В</div><div class="box-node" id="hintC">???</div></div>
+                    </div>
+                    
+                    <div class="alert alert-dark border-secondary">
+                        <b>ВХОД: <span id="m1-input" class="text-warning"></span></b> &rarr; 
+                        <select id="box1" class="bg-dark text-white border-secondary"><option value="">--</option><option value="A">А</option><option value="B">Б</option><option value="C">В</option></select> &rarr;
+                        <select id="box2" class="bg-dark text-white border-secondary"><option value="">--</option><option value="A">А</option><option value="B">Б</option><option value="C">В</option></select> &rarr;
+                        <select id="box3" class="bg-dark text-white border-secondary"><option value="">--</option><option value="A">А</option><option value="B">Б</option><option value="C">В</option></select> &rarr;
+                        <b>ЦЕЛЬ: <span id="m1-target" class="text-success"></span></b>
+                    </div>
+                    
+                    <button class="btn btn-outline-info w-100" onclick="checkM1()">ПОДАТЬ СИГНАЛ</button>
+                    <div class="progress-container"><div id="m1-prog" class="progress-bar-fill"></div></div>
+                    <div class="text-end small text-muted mt-1"><span id="m1-count">0</span> / 3</div>
+                    <div id="res1" class="mt-2 fw-bold text-center"></div>
+                </div>
+            </div>
+
+            <!-- Задание 2 -->
+            <div class="tab-pane fade" id="t2">
+                <div class="card cyber-box p-4 border-warning">
+                    <h4 class="text-warning mb-3">Миссия 2: Отрицательная Обратная Связь</h4>
+                    <p class="small text-muted">Система нестабильна! Значение постоянно отклоняется случайным образом (шум). Ваша задача: выступая в роли контроллера с <b>отрицательной обратной связью</b>, удерживайте красный маркер в зеленой зоне (Норма) в течение 5 секунд, нажимая кнопки ВЛЕВО и ВПРАВО.</p>
+                    
+                    <div class="mb-4 mt-4">
+                        <div class="level-container">
+                            <div class="level-safe-zone"></div>
+                            <div id="level-ind" class="level-indicator"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="d-flex justify-content-between gap-3">
+                        <button class="btn btn-outline-warning w-50 py-3" onclick="manualControl(-8)"><b>&laquo; ВЛЕВО</b> (-8)</button>
+                        <button class="btn btn-outline-warning w-50 py-3" onclick="manualControl(8)"><b>ВПРАВО &raquo;</b> (+8)</button>
+                    </div>
+                    
+                    <div class="progress-container"><div id="m2-prog" class="progress-bar-fill"></div></div>
+                    <div class="text-end small text-muted mt-1"><span id="m2-count">0</span> / 5</div>
+                    <div id="res2" class="mt-2 fw-bold text-center text-muted">Нажмите кнопку, чтобы начать симуляцию (1 раунд = 5 сек выживания)</div>
+                </div>
+            </div>
+
+            <!-- Задание 3 -->
+            <div class="tab-pane fade" id="t3">
+                <div class="card cyber-box p-4 border-success">
+                    <h4 class="text-success mb-3">Миссия 3: Алгоритм TCP (Congestion Control)</h4>
+                    <p class="small text-muted">Протокол TCP динамически меняет размер окна передачи в зависимости от обратной связи сети (наличие пакетов ACK или их потеря).</p>
+                    
+                    <div class="alert alert-dark border-secondary small">
+                        <b>Правило TCP (Упрощенно):</b><br>
+                        1. Если пришли все ACK (ОС успешна): Увеличить размер окна на <b>+1</b> (Additive Increase).<br>
+                        2. Если произошел Timeout (пакет потерян, сработала отрицательная ОС от сети): <b>Разделить окно на 2</b> (Multiplicative Decrease). Округлять вниз, но минимум 1.
+                    </div>
+                    
+                    <div class="bg-dark p-3 border border-secondary mb-3">
+                        <div class="text-muted small">Текущий статус соединения:</div>
+                        <h5 class="text-white mt-1">Размер окна (Window): <b class="text-info" id="tcp-win"></b> пакетов</h5>
+                        <h5 class="text-white mt-2">Событие сети: <b class="text-warning" id="tcp-event"></b></h5>
+                    </div>
+                    
+                    <label class="text-muted small">Вычислите новый размер окна по правилу TCP:</label>
+                    <input type="number" id="tcp-ans" class="form-control bg-dark text-white border-success mb-3 text-center fs-4" placeholder="Новый размер окна">
+                    
+                    <button class="btn btn-outline-success w-100" onclick="checkM3()">ОТПРАВИТЬ СЛЕДУЮЩИЙ БЛОК</button>
+                    
+                    <div class="progress-container"><div id="m3-prog" class="progress-bar-fill"></div></div>
+                    <div class="text-end small text-muted mt-1"><span id="m3-count">0</span> / 8</div>
+                    <div id="res3" class="mt-2 fw-bold text-center"></div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // --- ТЕЛЕМЕТРИЯ ---
+    const startTimes = {
+        'М1 (Ящики)': new Date(),
+        'М2 (Баланс ОС)': new Date(),
+        'М3 (TCP)': new Date()
+    };
+    let attemptsCount = { 'М1 (Ящики)': 0, 'М2 (Баланс ОС)': 0, 'М3 (TCP)': 0 };
+    let actionLogs = { 'М1 (Ящики)': [], 'М2 (Баланс ОС)': [], 'М3 (TCP)': [] };
+
+    function logAction(mission, input, success) {
+        attemptsCount[mission]++;
+        actionLogs[mission].push({
+            time: new Date().toISOString(),
+            input: input,
+            success: success
+        });
+        // Сразу отправляем как 'in_progress' чтобы учитель видел онлайн
+        sendTel(mission, success, 'in_progress');
+    }
+
+    function sendTel(mission, success, status = 'completed') {
+        const timeSpentSec = Math.floor((new Date() - startTimes[mission]) / 1000);
+        fetch('/telemetry', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ 
+                mission_name: mission, 
+                success: success,
+                start_time: startTimes[mission].toISOString(),
+                time_spent_sec: timeSpentSec,
+                attempts_count: attemptsCount[mission],
+                action_log: JSON.stringify(actionLogs[mission]),
+                status: status
+            })
+        });
+        
+        // Сбрасываем для следующей попытки ТОЛЬКО если статус завершен
+        if(status === 'completed') {
+            startTimes[mission] = new Date();
+            attemptsCount[mission] = 0;
+            actionLogs[mission] = [];
+        }
+    }
+
+    // --- МИССИЯ 1 (ЧЕРНЫЕ ЯЩИКИ) ---
+    let m1_progress = 0;
+    let m1_funcs = {};
+    let m1_target_val = 0;
+    let m1_start_val = 0;
+    
+    function generateM1() {
+        const ops = [
+            { s: '+', f: (x, n)=>x+n },
+            { s: '-', f: (x, n)=>x-n },
+            { s: '*', f: (x, n)=>x*n }
+        ];
+        
+        let a_op = ops[Math.floor(Math.random()*ops.length)];
+        let b_op = ops[Math.floor(Math.random()*ops.length)];
+        let c_op = ops[Math.floor(Math.random()*ops.length)];
+        
+        let a_n = Math.floor(Math.random()*10)+2;
+        let b_n = Math.floor(Math.random()*10)+2;
+        let c_n = Math.floor(Math.random()*10)+2;
+        
+        m1_funcs = {
+            'A': (x) => a_op.f(x, a_n),
+            'B': (x) => b_op.f(x, b_n),
+            'C': (x) => c_op.f(x, c_n)
+        };
+        
+        document.getElementById('hintA').innerText = `${a_op.s} ${a_n}`;
+        document.getElementById('hintB').innerText = `${b_op.s} ${b_n}`;
+        document.getElementById('hintC').innerText = `${c_op.s} ${c_n}`;
+        
+        m1_start_val = Math.floor(Math.random()*10)+1;
+        
+        // Randomly pick a correct sequence to ensure it's solvable
+        const seqs = [
+            ['A','B','C'], ['A','C','B'], ['B','A','C'],
+            ['B','C','A'], ['C','A','B'], ['C','B','A']
+        ];
+        const correct_seq = seqs[Math.floor(Math.random()*seqs.length)];
+        
+        let val = m1_start_val;
+        val = m1_funcs[correct_seq[0]](val);
+        val = m1_funcs[correct_seq[1]](val);
+        val = m1_funcs[correct_seq[2]](val);
+        m1_target_val = val;
+        
+        document.getElementById('m1-input').innerText = m1_start_val;
+        document.getElementById('m1-target').innerText = m1_target_val;
+        
+        document.getElementById('box1').value = '';
+        document.getElementById('box2').value = '';
+        document.getElementById('box3').value = '';
+    }
+    
+    function checkM1() {
+        const b1 = document.getElementById('box1').value;
+        const b2 = document.getElementById('box2').value;
+        const b3 = document.getElementById('box3').value;
+        if(!b1 || !b2 || !b3) return;
+        
+        let val = m1_start_val;
+        val = m1_funcs[b1](val);
+        val = m1_funcs[b2](val);
+        val = m1_funcs[b3](val);
+        
+        const success = (val === m1_target_val);
+        logAction('М1 (Ящики)', `Ввел цепь ${b1}-${b2}-${b3} (вых: ${val})`, success);
+        
+        const resEl = document.getElementById('res1');
+        if (success) {
+            m1_progress++;
+            document.getElementById('m1-prog').style.width = (m1_progress/3*100) + '%';
+            document.getElementById('m1-count').innerText = m1_progress;
+            document.getElementById('tab1-count').innerText = m1_progress;
+            resEl.innerHTML = `<span class="text-success">✅ Верно! Получено ${val}. Сборка #${m1_progress} готова.</span>`;
+            if(m1_progress >= 3) {
+                sendTel('М1 (Ящики)', true);
+                resEl.innerHTML = '<span class="text-success">🏆 МИССИЯ ВЫПОЛНЕНА!</span>';
+            } else {
+                setTimeout(generateM1, 1500);
+            }
+        } else {
+            m1_progress = 0;
+            document.getElementById('m1-prog').style.width = '0%';
+            document.getElementById('m1-count').innerText = 0;
+            document.getElementById('tab1-count').innerText = 0;
+            resEl.innerHTML = `<span class="text-danger">❌ Ошибка! На выходе ${val}, а нужно ${m1_target_val}. Прогресс сброшен.</span>`;
+            sendTel('М1 (Ящики)', false);
+            setTimeout(generateM1, 2000);
+        }
+    }
+
+    // --- МИССИЯ 2 (БАЛАНСИРОВЩИК / ОС) ---
+    let m2_progress = 0;
+    let m2_pos = 50;
+    let m2_running = false;
+    let m2_interval;
+    let m2_timeAlive = 0;
+    
+    function startM2() {
+        if(m2_running) return;
+        m2_running = true;
+        m2_pos = 50;
+        m2_timeAlive = 0;
+        document.getElementById('res2').innerText = 'Удерживайте маркер в зеленой зоне (40% - 60%)!';
+        
+        m2_interval = setInterval(() => {
+            // Random disturbance (шум)
+            m2_pos += (Math.random() * 6 - 3);
+            
+            // Apply bounds
+            if(m2_pos < 0) m2_pos = 0;
+            if(m2_pos > 100) m2_pos = 100;
+            
+            document.getElementById('level-ind').style.left = m2_pos + '%';
+            
+            // Check fail
+            if(m2_pos < 40 || m2_pos > 60) {
+                clearInterval(m2_interval);
+                m2_running = false;
+                m2_progress = 0;
+                document.getElementById('m2-prog').style.width = '0%';
+                document.getElementById('m2-count').innerText = 0;
+                document.getElementById('tab2-count').innerText = 0;
+                document.getElementById('res2').innerHTML = '<span class="text-danger">❌ СИСТЕМА ВЫШЛА ИЗ СТРОЯ! Вы не справились с управлением. Прогресс сброшен.</span>';
+                sendTel('М2 (Баланс ОС)', false);
+            } else {
+                m2_timeAlive += 100;
+                if(m2_timeAlive >= 5000) {
+                    clearInterval(m2_interval);
+                    m2_running = false;
+                    m2_progress++;
+                    document.getElementById('m2-prog').style.width = (m2_progress/5*100) + '%';
+                    document.getElementById('m2-count').innerText = m2_progress;
+                    document.getElementById('tab2-count').innerText = m2_progress;
+                    document.getElementById('res2').innerHTML = `<span class="text-success">✅ СТАБИЛИЗАЦИЯ УСПЕШНА (${m2_progress}/5)</span>`;
+                    
+                    if(m2_progress >= 5) {
+                        sendTel('М2 (Баланс ОС)', true);
+                        document.getElementById('res2').innerHTML = '<span class="text-success">🏆 МИССИЯ ВЫПОЛНЕНА! Вы идеальный контроллер с отрицательной ОС.</span>';
+                    }
+                }
+            }
+        }, 100);
+    }
+    
+    function manualControl(val) {
+        if(m2_progress >= 5) return;
+        if(!m2_running) {
+            startM2();
+            return;
+        }
+        m2_pos += val;
+        logAction('М2 (Баланс ОС)', `Кликнул ${val < 0 ? 'ВЛЕВО' : 'ВПРАВО'}`, true);
+    }
+
+    // --- МИССИЯ 3 (TCP) ---
+    let m3_progress = 0;
+    let m3_curr_win = 4;
+    let m3_is_loss = false;
+    let m3_correct_ans = 0;
+    
+    function generateM3() {
+        m3_curr_win = Math.floor(Math.random() * 15) + 2;
+        m3_is_loss = Math.random() > 0.6; // 40% chance of packet loss
+        
+        document.getElementById('tcp-win').innerText = m3_curr_win;
+        
+        if (m3_is_loss) {
+            document.getElementById('tcp-event').innerHTML = '⚠️ Пакет потерян (Timeout). <br><span class="small text-danger">Отрицательная ОС сработала, сеть перегружена!</span>';
+            m3_correct_ans = Math.max(1, Math.floor(m3_curr_win / 2));
+        } else {
+            document.getElementById('tcp-event').innerHTML = '✅ Получены все ACK. <br><span class="small text-success">Сеть свободна, можно разгоняться!</span>';
+            m3_correct_ans = m3_curr_win + 1;
+        }
+        document.getElementById('tcp-ans').value = '';
+    }
+    
+    function checkM3() {
+        if(m3_progress >= 8) return;
+        
+        const ans = parseInt(document.getElementById('tcp-ans').value);
+        if(isNaN(ans)) return;
+        
+        const success = (ans === m3_correct_ans);
+        logAction('М3 (TCP)', `Ввел окно ${ans} (ожидалось ${m3_correct_ans})`, success);
+        
+        const resEl = document.getElementById('res3');
+        if (success) {
+            m3_progress++;
+            document.getElementById('m3-prog').style.width = (m3_progress/8*100) + '%';
+            document.getElementById('m3-count').innerText = m3_progress;
+            document.getElementById('tab3-count').innerText = m3_progress;
+            resEl.innerHTML = `<span class="text-success">✅ Отлично! TCP окно настроено верно.</span>`;
+            
+            if(m3_progress >= 8) {
+                sendTel('М3 (TCP)', true);
+                resEl.innerHTML = '<span class="text-success">🏆 МИССИЯ ВЫПОЛНЕНА! Вы освоили алгоритм TCP.</span>';
+            } else {
+                setTimeout(generateM3, 1500);
+            }
+        } else {
+            m3_progress = 0;
+            document.getElementById('m3-prog').style.width = '0%';
+            document.getElementById('m3-count').innerText = 0;
+            document.getElementById('tab3-count').innerText = 0;
+            resEl.innerHTML = `<span class="text-danger">❌ Ошибка сети! Правильное значение было: ${m3_correct_ans}. Прогресс сброшен.</span>`;
+            sendTel('М3 (TCP)', false);
+            setTimeout(generateM3, 2500);
+        }
+    }
+
+    // Инициализация
+    generateM1();
+    generateM3();
+</script>
+{% endblock %}

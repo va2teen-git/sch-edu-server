@@ -68,23 +68,96 @@ def log_action(name, action_text):
     if name != '#учитель#':
         new_log = LogEvent(student_name=name, action=action_text)
         db.session.add(new_log)
+        
+        # Автоматическая конвертация старых логов в новую телеметрию
+        if '[ВЕРНО]' in action_text or '[ОШИБКА]' in action_text:
+            # Игнорируем логи, которые уже сгенерированы новой телеметрией
+            if 'Попыток:' not in action_text:
+                success = '[ВЕРНО]' in action_text
+                mission = "Прочие задания"
+                if ":" in action_text:
+                    mission = action_text.split(":")[0].strip()
+                user_input = action_text.split(']', 1)[-1].strip()
+                
+                # Ищем последнюю попытку
+                attempt = TaskAttempt.query.filter_by(student_name=name, mission_name=mission).order_by(TaskAttempt.id.desc()).first()
+                
+                import json
+                from datetime import datetime, timedelta
+                now = datetime.utcnow()
+                now_str = now.isoformat() + "Z"
+                
+                # Если нет попытки, или предыдущая была завершена успехом, или слишком старая (> 10 мин)
+                is_new = True
+                if attempt:
+                    try:
+                        start_dt = datetime.fromisoformat(attempt.start_time.replace('Z', ''))
+                        if not attempt.success and (now - start_dt) < timedelta(minutes=10):
+                            is_new = False
+                    except:
+                        pass
+                        
+                if is_new:
+                    attempt = TaskAttempt(
+                        student_name=name,
+                        mission_name=mission,
+                        start_time=now_str,
+                        time_spent_sec=0,
+                        attempts_count=0,
+                        success=success,
+                        action_log="[]"
+                    )
+                    db.session.add(attempt)
+                    
+                logs_arr = json.loads(attempt.action_log)
+                logs_arr.append({
+                    "time": now_str,
+                    "input": user_input,
+                    "success": success
+                })
+                
+                attempt.attempts_count += 1
+                attempt.success = success
+                attempt.action_log = json.dumps(logs_arr)
+                
+                try:
+                    first_time = datetime.fromisoformat(logs_arr[0]["time"].replace('Z',''))
+                    attempt.time_spent_sec = int((now - first_time).total_seconds())
+                except:
+                    pass
+
         db.session.commit()
 
 @app.route('/telemetry', methods=['POST'])
 def telemetry():
     if 'student_name' not in session: return jsonify({"error": "No session"})
     data = request.json
-    attempt = TaskAttempt(
+    status_flag = data.get('status', 'completed')
+    
+    attempt = TaskAttempt.query.filter_by(
         student_name=session['student_name'],
         mission_name=data.get('mission_name', 'Unknown'),
-        start_time=data.get('start_time', ''),
-        time_spent_sec=data.get('time_spent_sec', 0),
-        attempts_count=data.get('attempts_count', 0),
-        success=data.get('success', False),
-        action_log=data.get('action_log', '[]')
-    )
-    db.session.add(attempt)
+        start_time=data.get('start_time', '')
+    ).first()
+    
+    if not attempt:
+        attempt = TaskAttempt(
+            student_name=session['student_name'],
+            mission_name=data.get('mission_name', 'Unknown'),
+            start_time=data.get('start_time', '')
+        )
+        db.session.add(attempt)
+        
+    attempt.time_spent_sec = data.get('time_spent_sec', 0)
+    attempt.attempts_count = data.get('attempts_count', 0)
+    attempt.success = data.get('success', False)
+    attempt.action_log = data.get('action_log', '[]')
+    
     db.session.commit()
+    
+    if status_flag != 'in_progress':
+        log_action(session['student_name'], f"[{'УСПЕХ' if attempt.success else 'ПРОВАЛ'}] {attempt.mission_name}. Попыток: {attempt.attempts_count}, Время: {attempt.time_spent_sec}с")
+        
     return jsonify({"status": "ok"})
 
 @app.route('/', methods=['GET', 'POST'])
@@ -241,23 +314,89 @@ def teacher():
     attempts = TaskAttempt.query.order_by(TaskAttempt.id.desc()).all()
     
     students = {}
+    import json
+    from datetime import datetime
+    
     for log in logs:
         if log.student_name not in students:
-            students[log.student_name] = {'logs': [], 'attempts': []}
-        students[log.student_name]['logs'].append(log)
+            students[log.student_name] = {'timeline': [], 'attempts': []}
+        students[log.student_name]['timeline'].append({
+            'time': log.timestamp,
+            'type': 'general',
+            'text': log.action
+        })
         
     for attempt in attempts:
         if attempt.student_name not in students:
-            students[attempt.student_name] = {'logs': [], 'attempts': []}
-        import json
-        attempt.action_log_parsed = json.loads(attempt.action_log)
+            students[attempt.student_name] = {'timeline': [], 'attempts': []}
+        
+        parsed = json.loads(attempt.action_log)
+        attempt.action_log_parsed = parsed
         students[attempt.student_name]['attempts'].append(attempt)
+        
+        last_time = None
+        for idx, act in enumerate(parsed):
+            # Parse ISO8601 (e.g. 2026-09-22T14:02:25.123Z)
+            try:
+                dt = datetime.fromisoformat(act['time'].replace('Z', ''))
+            except:
+                dt = datetime.utcnow()
+                
+            think_time = 0
+            if last_time:
+                think_time = round((dt - last_time).total_seconds(), 1)
+            last_time = dt
+            
+            is_final_success = act['success'] and attempt.success and (idx == len(parsed) - 1)
+            
+            students[attempt.student_name]['timeline'].append({
+                'time': dt,
+                'type': 'action',
+                'mission': attempt.mission_name,
+                'text': act['input'],
+                'success': act['success'],
+                'think_time': think_time,
+                'attempt_num': idx + 1,
+                'is_final_success': is_final_success,
+                'total_time': attempt.time_spent_sec,
+                'total_attempts': attempt.attempts_count
+            })
+            
+    # Compute chart data and sort timelines
+    for s_name, s_data in students.items():
+        s_data['timeline'].sort(key=lambda x: x['time'], reverse=True)
+        
+        # Chart 1: Time & Attempts per mission
+        missions_map = {}
+        total_correct = 0
+        total_errors = 0
+        
+        # Add data from new telemetry
+        for attempt in s_data['attempts']:
+            m_name = attempt.mission_name
+            if m_name not in missions_map:
+                missions_map[m_name] = {'time': 0, 'attempts': 0}
+            missions_map[m_name]['time'] += attempt.time_spent_sec
+            missions_map[m_name]['attempts'] += attempt.attempts_count
+            
+            for act in attempt.action_log_parsed:
+                if act['success']: total_correct += 1
+                else: total_errors += 1
+                
+        s_data['charts'] = {
+            'labels': list(missions_map.keys()),
+            'times': [m['time'] for m in missions_map.values()],
+            'attempts': [m['attempts'] for m in missions_map.values()],
+            'correct': total_correct,
+            'errors': total_errors
+        }
         
     return render_template('teacher.html', students=students)
 
 @app.route('/lesson/grade11/codes')
 def lesson_codes():
     if 'student_name' not in session: return redirect('/')
+    log_action(session['student_name'], "Открыл Урок 9 (11кл): Помехоустойчивые коды")
     
     # Уровень 1 (Бит четности)
     data0 = generate_random_bits(4)
@@ -282,16 +421,21 @@ def lesson_codes():
     session['m2_task'] = noisy2
     session['m2_syndrome'] = syndrome2
     
-    log_action(session['student_name'], f"Урок 11кл: Выданы задачи. Хэмминг поз: {syndrome2}")
-    
     return render_template('codes11.html', 
                            m0_task=task0_bits, m0_correct=session.get('m0_correct', 0),
                            m1_task=noisy1, m1_correct=session.get('m1_correct', 0),
                            m2_task=noisy2, m2_correct=session.get('m2_correct', 0))
 
+@app.route('/lesson/grade11/systems')
+def lesson_systems():
+    if 'student_name' not in session: return redirect('/')
+    log_action(session['student_name'], "Открыл Урок 10 (11кл): Системы и управление")
+    return render_template('lesson10.html')
+
 @app.route('/lesson/grade8/octal')
 def lesson_octal():
     if 'student_name' not in session: return redirect('/')
+    log_action(session['student_name'], "Открыл Урок (8кл): Восьмеричная система")
     
     # Уровень 1 (Базовый): Из 10 в 8
     lvl1_dec = random.randint(50, 300)

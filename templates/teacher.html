@@ -1,5 +1,6 @@
 {% extends "layout.html" %}
 {% block content %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <div class="row">
     <div class="col-12 text-center mb-4">
         <h1 class="text-danger fw-bold">🛡️ M.A.S.T.E.R. DASHBOARD 🛡️</h1>
@@ -38,75 +39,135 @@
                 {% endif %}
                 
                 {% for student_name, data in students.items() %}
-                <div class="tab-pane fade {% if loop.first %}show active{% endif %}" id="list-{{ loop.index }}" role="tabpanel">
-                    <h3 class="text-warning mb-3">Профиль: <span class="text-white">{{ student_name }}</span></h3>
+                    <h5 class="text-info border-bottom border-secondary pb-2 mb-3">Визуальная аналитика</h5>
                     
-                    <ul class="nav nav-pills mb-3 border-bottom border-secondary pb-2" id="pills-tab-{{ loop.index }}" role="tablist">
-                      <li class="nav-item" role="presentation">
-                        <button class="nav-link active btn-sm" data-bs-toggle="pill" data-bs-target="#analytics-{{ loop.index }}" type="button" role="tab">Глубокая аналитика (Телеметрия)</button>
-                      </li>
-                      <li class="nav-item" role="presentation">
-                        <button class="nav-link btn-sm" data-bs-toggle="pill" data-bs-target="#logs-{{ loop.index }}" type="button" role="tab">Общий Лог действий</button>
-                      </li>
-                    </ul>
-
-                    <div class="tab-content" id="pills-tabContent-{{ loop.index }}">
-                        <!-- Analytics Tab -->
-                        <div class="tab-pane fade show active" id="analytics-{{ loop.index }}" role="tabpanel">
-                            {% if not data.attempts %}
-                                <p class="text-muted">Телеметрия по заданиям еще не поступала.</p>
-                            {% endif %}
-                            
-                            {% for attempt in data.attempts %}
-                            <div class="card bg-dark border-secondary mb-3">
-                                <div class="card-header d-flex justify-content-between align-items-center border-secondary">
-                                    <strong>{{ attempt.mission_name }}</strong>
-                                    <span class="badge {% if attempt.success %}bg-success{% else %}bg-danger{% endif %}">
-                                        {% if attempt.success %}Успех{% else %}Сдался{% endif %}
-                                    </span>
-                                </div>
-                                <div class="card-body py-2">
-                                    <div class="row text-muted small mb-2 border-bottom border-secondary pb-2">
-                                        <div class="col">Начало: {{ attempt.start_time[:19].replace('T', ' ') }}</div>
-                                        <div class="col">Затрачено: <span class="text-warning">{{ attempt.time_spent_sec }} сек</span></div>
-                                        <div class="col">Попыток ввода: {{ attempt.attempts_count }}</div>
-                                    </div>
-                                    
-                                    <h6 class="text-info mt-2">Ход решения (Лог вводов):</h6>
-                                    <div class="font-monospace" style="font-size: 0.85rem;">
-                                        {% for act in attempt.action_log_parsed %}
-                                            <div>
-                                                <span class="text-secondary">[{{ act.time[11:19] }}]</span>
-                                                Ввод: <strong class="text-light">"{{ act.input }}"</strong> 
-                                                {% if act.success %}
-                                                    <span class="text-success">✅ (Верно)</span>
-                                                {% else %}
-                                                    <span class="text-danger">❌ (Ошибка)</span>
-                                                {% endif %}
-                                            </div>
-                                        {% endfor %}
-                                    </div>
+                    {% if data.charts.labels %}
+                    <div class="row mb-4">
+                        <div class="col-md-4">
+                            <div class="bg-dark p-2 rounded h-100 border border-secondary">
+                                <h6 class="text-center text-muted small">Время на задания (сек)</h6>
+                                <div style="position: relative; height: 200px;">
+                                    <canvas id="chartTime-{{ loop.index }}"></canvas>
                                 </div>
                             </div>
-                            {% endfor %}
                         </div>
-
-                        <!-- Logs Tab -->
-                        <div class="tab-pane fade" id="logs-{{ loop.index }}" role="tabpanel">
-                            <div class="bg-dark p-2 rounded" style="max-height: 500px; overflow-y: auto;">
-                                <table class="table table-dark table-hover font-monospace m-0" style="font-size: 0.85rem;">
-                                    <tbody>
-                                        {% for log in data.logs %}
-                                        <tr>
-                                            <td class="text-secondary" width="20%">{{ log.timestamp.strftime('%H:%M:%S') }}</td>
-                                            <td class="{% if '[ОШИБКА]' in log.action %}text-danger{% elif '[ВЕРНО]' in log.action %}text-success{% else %}text-light{% endif %}">
-                                                {{ log.action }}
-                                            </td>
-                                        </tr>
-                                        {% endfor %}
-                                    </tbody>
-                                </table>
+                        <div class="col-md-4">
+                            <div class="bg-dark p-2 rounded h-100 border border-secondary">
+                                <h6 class="text-center text-muted small">Количество попыток (вводов)</h6>
+                                <div style="position: relative; height: 200px;">
+                                    <canvas id="chartAtt-{{ loop.index }}"></canvas>
+                                </div>
                             </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="bg-dark p-2 rounded h-100 border border-secondary">
+                                <h6 class="text-center text-muted small">Точность решений</h6>
+                                <div style="position: relative; height: 200px;">
+                                    <canvas id="chartAcc-{{ loop.index }}"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <script>
+                        document.addEventListener("DOMContentLoaded", function() {
+                            const labels = {{ data.charts.labels | tojson }};
+                            const times = {{ data.charts.times | tojson }};
+                            const attempts = {{ data.charts.attempts | tojson }};
+                            const correct = {{ data.charts.correct }};
+                            const errors = {{ data.charts.errors }};
+                            
+                            // Chart 1: Time Spent
+                            new Chart(document.getElementById('chartTime-{{ loop.index }}'), {
+                                type: 'bar',
+                                data: {
+                                    labels: labels,
+                                    datasets: [{
+                                        label: 'Секунды',
+                                        data: times,
+                                        backgroundColor: 'rgba(54, 162, 235, 0.6)',
+                                        borderColor: 'rgba(54, 162, 235, 1)',
+                                        borderWidth: 1
+                                    }]
+                                },
+                                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, grid: { color: '#444' } }, x: { grid: { color: '#444' } } } }
+                            });
+                            
+                            // Chart 2: Attempts
+                            new Chart(document.getElementById('chartAtt-{{ loop.index }}'), {
+                                type: 'line',
+                                data: {
+                                    labels: labels,
+                                    datasets: [{
+                                        label: 'Попытки',
+                                        data: attempts,
+                                        backgroundColor: 'rgba(255, 206, 86, 0.2)',
+                                        borderColor: 'rgba(255, 206, 86, 1)',
+                                        borderWidth: 2,
+                                        fill: true,
+                                        tension: 0.3
+                                    }]
+                                },
+                                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, grid: { color: '#444' } }, x: { grid: { color: '#444' } } } }
+                            });
+                            
+                            // Chart 3: Accuracy
+                            new Chart(document.getElementById('chartAcc-{{ loop.index }}'), {
+                                type: 'doughnut',
+                                data: {
+                                    labels: ['Верно', 'Ошибки'],
+                                    datasets: [{
+                                        data: [correct, errors],
+                                        backgroundColor: ['rgba(75, 192, 192, 0.7)', 'rgba(255, 99, 132, 0.7)'],
+                                        borderColor: ['rgba(75, 192, 192, 1)', 'rgba(255, 99, 132, 1)'],
+                                        borderWidth: 1
+                                    }]
+                                },
+                                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { color: '#fff' } } } }
+                            });
+                        });
+                    </script>
+                    {% else %}
+                        <p class="text-muted">Для построения графиков нужно, чтобы ученик начал выполнять задания с интерактивными элементами.</p>
+                    {% endif %}
+
+                    <h5 class="text-info border-bottom border-secondary pb-2 mb-3 mt-4">Хронология действий (Единый лог)</h5>
+                    
+                    <div class="bg-dark p-3 rounded" style="max-height: 600px; overflow-y: auto;">
+                        <div class="timeline">
+                            {% for item in data.timeline %}
+                                <div class="mb-2 pb-2 border-bottom border-secondary" style="font-size: 0.9rem;">
+                                    <span class="text-secondary font-monospace">[{{ item.time.strftime('%H:%M:%S') }}]</span>
+                                    
+                                    {% if item.type == 'general' %}
+                                        <span class="{% if '[ОШИБКА]' in item.text or 'ПРОВАЛ' in item.text %}text-danger{% elif '[ВЕРНО]' in item.text or 'УСПЕХ' in item.text %}text-success{% else %}text-light{% endif %}">
+                                            {{ item.text }}
+                                        </span>
+                                    {% else %}
+                                        <!-- Action from a specific mission -->
+                                        <span class="text-info">[{{ item.mission }}]</span>
+                                        <span class="text-secondary small">(Попытка {{ item.attempt_num }})</span>
+                                        <span class="text-light">Ввод: <strong>"{{ item.text }}"</strong></span>
+                                        
+                                        {% if item.success %}
+                                            <span class="badge bg-success ms-2">ВЕРНО</span>
+                                        {% else %}
+                                            <span class="badge bg-danger ms-2">ОШИБКА</span>
+                                        {% endif %}
+                                        
+                                        {% if item.think_time > 0 %}
+                                            <div class="text-muted small ms-5">&rdsh; Время на раздумье: <span class="text-warning">{{ item.think_time }} сек</span></div>
+                                        {% endif %}
+                                        
+                                        {% if item.is_final_success %}
+                                            <div class="mt-2 p-2 bg-success bg-opacity-25 border border-success rounded text-success small ms-5">
+                                                ✅ <strong>Задание выполнено!</strong><br>
+                                                Всего попыток: <strong>{{ item.total_attempts }}</strong> | Общее время выполнения: <strong>{{ item.total_time }} сек</strong>
+                                            </div>
+                                        {% endif %}
+                                    {% endif %}
+                                </div>
+                            {% endfor %}
                         </div>
                     </div>
                 </div>
