@@ -3,8 +3,7 @@
 <div class="row justify-content-center">
     <div class="col-md-8 text-center">
         <h1 class="cyber-text mb-4">ДОБРО ПОЖАЛОВАТЬ, {{ name }}</h1>
-        
-        {% if grade == '11' %}
+        {% if grade == '11-tech' %}
             <div class="list-group col-md-8 mx-auto text-start mt-4">
                 <a href="/lesson/grade11/codes" class="list-group-item list-group-item-action list-group-item-dark d-flex justify-content-between align-items-center p-3 fs-5">
                     <div>
@@ -21,7 +20,24 @@
                     <span>🌐</span>
                 </a>
             </div>
-        {% else %}
+        {% elif grade == '10-tech' %}
+            <div class="list-group col-md-8 mx-auto text-start mt-4">
+                <a href="/lesson/grade10/law" class="list-group-item list-group-item-action list-group-item-dark d-flex justify-content-between align-items-center p-3 fs-5">
+                    <div>
+                        <span class="badge bg-secondary me-2">Урок 12</span>
+                        Практическая работа: Законодательство в области ПО и данных
+                    </div>
+                    <span>⚖️</span>
+                </a>
+                <a href="/lesson/grade10/networks" class="list-group-item list-group-item-action list-group-item-dark d-flex justify-content-between align-items-center p-3 fs-5 border-top border-secondary">
+                    <div>
+                        <span class="badge bg-secondary me-2">Урок 13</span>
+                        Принципы построения сетей. Маршрутизация BGP
+                    </div>
+                    <span>🌐</span>
+                </a>
+            </div>
+        {% elif grade == '8' %}
             <div class="list-group col-md-8 mx-auto text-start mt-4">
                 <a href="/lesson/grade8/octal" class="list-group-item list-group-item-action list-group-item-dark d-flex justify-content-between align-items-center p-3 fs-5">
                     <div>
@@ -30,6 +46,10 @@
                     </div>
                     <span>🔓</span>
                 </a>
+            </div>
+        {% else %}
+            <div class="alert alert-secondary col-md-8 mx-auto mt-4 text-start">
+                <strong>Обратите внимание:</strong> Для вашего класса интерактивные уроки пока находятся в разработке. Пожалуйста, ожидайте обновлений!
             </div>
         {% endif %}
     </div>

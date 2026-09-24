@@ -20,4 +20,4 @@ echo ==============================================
 echo Build Complete! 
 echo You can find the executable at: dist\server.exe
 echo ==============================================
-pause
+echo ==============================================

@@ -1,6 +1,5 @@
 {% extends "layout.html" %}
 {% block content %}
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <div class="row">
     <div class="col-12 text-center mb-4">
         <h1 class="text-danger fw-bold">🛡️ M.A.S.T.E.R. DASHBOARD 🛡️</h1>
@@ -27,7 +26,7 @@
                 </a>
                 {% endfor %}
             </div>
-            <button class="btn btn-outline-info mt-4" onclick="window.location.reload()">🔄 Обновить данные</button>
+            <button class="btn btn-outline-info mt-4" onclick="window.location.reload()" style="border-radius: 0;">🔄 Обновить данные</button>
         </div>
     </div>
     
@@ -38,140 +37,129 @@
                 <div class="text-center text-muted mt-5">Ожидание данных...</div>
                 {% endif %}
                 
-                {% for student_name, data in students.items() %}
-                    <h5 class="text-info border-bottom border-secondary pb-2 mb-3">Визуальная аналитика</h5>
+                {% for student_name, s_data in students.items() %}
+                {% set student_idx = loop.index %}
+                <div class="tab-pane fade {% if loop.first %}show active{% endif %}" id="list-{{ student_idx }}" role="tabpanel">
                     
-                    {% if data.charts.labels %}
-                    <div class="row mb-4">
-                        <div class="col-md-4">
-                            <div class="bg-dark p-2 rounded h-100 border border-secondary">
-                                <h6 class="text-center text-muted small">Время на задания (сек)</h6>
-                                <div style="position: relative; height: 200px;">
-                                    <canvas id="chartTime-{{ loop.index }}"></canvas>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="bg-dark p-2 rounded h-100 border border-secondary">
-                                <h6 class="text-center text-muted small">Количество попыток (вводов)</h6>
-                                <div style="position: relative; height: 200px;">
-                                    <canvas id="chartAtt-{{ loop.index }}"></canvas>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="bg-dark p-2 rounded h-100 border border-secondary">
-                                <h6 class="text-center text-muted small">Точность решений</h6>
-                                <div style="position: relative; height: 200px;">
-                                    <canvas id="chartAcc-{{ loop.index }}"></canvas>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                    <h4 class="text-warning mb-3">Окно ученика: {{ student_name }}</h4>
                     
-                    <script>
-                        document.addEventListener("DOMContentLoaded", function() {
-                            const labels = {{ data.charts.labels | tojson }};
-                            const times = {{ data.charts.times | tojson }};
-                            const attempts = {{ data.charts.attempts | tojson }};
-                            const correct = {{ data.charts.correct }};
-                            const errors = {{ data.charts.errors }};
+                    <!-- Tabs for missions -->
+                    <ul class="nav nav-tabs" id="missionTabs-{{ student_idx }}" role="tablist">
+                        {% set first_mission = True %}
+                        {% for m_name in s_data.missions.keys() %}
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link {% if first_mission %}active{% endif %}" 
+                                    style="border-radius: 0; background: #222; color: #00ffcc; border: 1px solid #444;"
+                                    id="m-tab-{{ loop.index }}-{{ student_idx }}" 
+                                    data-bs-toggle="tab" 
+                                    data-bs-target="#m-content-{{ loop.index }}-{{ student_idx }}" 
+                                    type="button" role="tab">
+                                {{ m_name }}
+                            </button>
+                        </li>
+                        {% set first_mission = False %}
+                        {% endfor %}
+                    </ul>
+                    
+                    <!-- Mission content -->
+                    <div class="tab-content mt-4">
+                        {% set first_mission_pane = True %}
+                        {% for m_name, m_data in s_data.missions.items() %}
+                        <div class="tab-pane fade {% if first_mission_pane %}show active{% endif %}" 
+                             id="m-content-{{ loop.index }}-{{ student_idx }}" role="tabpanel">
                             
-                            // Chart 1: Time Spent
-                            new Chart(document.getElementById('chartTime-{{ loop.index }}'), {
-                                type: 'bar',
-                                data: {
-                                    labels: labels,
-                                    datasets: [{
-                                        label: 'Секунды',
-                                        data: times,
-                                        backgroundColor: 'rgba(54, 162, 235, 0.6)',
-                                        borderColor: 'rgba(54, 162, 235, 1)',
-                                        borderWidth: 1
-                                    }]
-                                },
-                                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, grid: { color: '#444' } }, x: { grid: { color: '#444' } } } }
-                            });
-                            
-                            // Chart 2: Attempts
-                            new Chart(document.getElementById('chartAtt-{{ loop.index }}'), {
-                                type: 'line',
-                                data: {
-                                    labels: labels,
-                                    datasets: [{
-                                        label: 'Попытки',
-                                        data: attempts,
-                                        backgroundColor: 'rgba(255, 206, 86, 0.2)',
-                                        borderColor: 'rgba(255, 206, 86, 1)',
-                                        borderWidth: 2,
-                                        fill: true,
-                                        tension: 0.3
-                                    }]
-                                },
-                                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, grid: { color: '#444' } }, x: { grid: { color: '#444' } } } }
-                            });
-                            
-                            // Chart 3: Accuracy
-                            new Chart(document.getElementById('chartAcc-{{ loop.index }}'), {
-                                type: 'doughnut',
-                                data: {
-                                    labels: ['Верно', 'Ошибки'],
-                                    datasets: [{
-                                        data: [correct, errors],
-                                        backgroundColor: ['rgba(75, 192, 192, 0.7)', 'rgba(255, 99, 132, 0.7)'],
-                                        borderColor: ['rgba(75, 192, 192, 1)', 'rgba(255, 99, 132, 1)'],
-                                        borderWidth: 1
-                                    }]
-                                },
-                                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { color: '#fff' } } } }
-                            });
-                        });
-                    </script>
-                    {% else %}
-                        <p class="text-muted">Для построения графиков нужно, чтобы ученик начал выполнять задания с интерактивными элементами.</p>
-                    {% endif %}
 
-                    <h5 class="text-info border-bottom border-secondary pb-2 mb-3 mt-4">Хронология действий (Единый лог)</h5>
-                    
-                    <div class="bg-dark p-3 rounded" style="max-height: 600px; overflow-y: auto;">
-                        <div class="timeline">
-                            {% for item in data.timeline %}
-                                <div class="mb-2 pb-2 border-bottom border-secondary" style="font-size: 0.9rem;">
-                                    <span class="text-secondary font-monospace">[{{ item.time.strftime('%H:%M:%S') }}]</span>
-                                    
-                                    {% if item.type == 'general' %}
-                                        <span class="{% if '[ОШИБКА]' in item.text or 'ПРОВАЛ' in item.text %}text-danger{% elif '[ВЕРНО]' in item.text or 'УСПЕХ' in item.text %}text-success{% else %}text-light{% endif %}">
-                                            {{ item.text }}
-                                        </span>
-                                    {% else %}
-                                        <!-- Action from a specific mission -->
-                                        <span class="text-info">[{{ item.mission }}]</span>
-                                        <span class="text-secondary small">(Попытка {{ item.attempt_num }})</span>
-                                        <span class="text-light">Ввод: <strong>"{{ item.text }}"</strong></span>
-                                        
-                                        {% if item.success %}
-                                            <span class="badge bg-success ms-2">ВЕРНО</span>
-                                        {% else %}
-                                            <span class="badge bg-danger ms-2">ОШИБКА</span>
-                                        {% endif %}
-                                        
-                                        {% if item.think_time > 0 %}
-                                            <div class="text-muted small ms-5">&rdsh; Время на раздумье: <span class="text-warning">{{ item.think_time }} сек</span></div>
-                                        {% endif %}
-                                        
-                                        {% if item.is_final_success %}
-                                            <div class="mt-2 p-2 bg-success bg-opacity-25 border border-success rounded text-success small ms-5">
-                                                ✅ <strong>Задание выполнено!</strong><br>
-                                                Всего попыток: <strong>{{ item.total_attempts }}</strong> | Общее время выполнения: <strong>{{ item.total_time }} сек</strong>
+                            <!-- Успешные попытки -->
+                            <h5 class="text-info border-bottom border-secondary pb-2 mb-3">Глобальная статистика урока</h5>
+                            <div class="bg-dark border border-secondary p-3 mb-4 shadow-sm">
+                                <div class="row text-center">
+                                    <div class="col-md-4">
+                                        <div class="text-muted small">Общее время</div>
+                                        <div class="fs-4 text-warning">{{ m_data.global_time }} сек</div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="text-muted small">Всего ошибок</div>
+                                        <div class="fs-4 text-danger">{{ m_data.global_errors }}</div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="text-muted small">Прогресс</div>
+                                        <div class="fs-4 text-success">{{ m_data.tasks_completed | length }} / {{ m_data.tasks | length }} заданий</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <h5 class="text-info border-bottom border-secondary pb-2 mb-3">Статистика по заданиям</h5>
+                            <div class="row mb-4">
+                            {% for t_name, t_data in m_data.tasks.items() %}
+                                <div class="col-md-6 mb-3">
+                                    <div class="card bg-dark border-secondary">
+                                        <div class="card-header border-secondary d-flex justify-content-between align-items-center">
+                                            <span class="text-light fw-bold">{{ t_name }}</span>
+                                            {% if t_data.success %}
+                                                <span class="badge bg-success" style="border-radius: 0;">ВЫПОЛНЕНО</span>
+                                            {% else %}
+                                                <span class="badge bg-warning text-dark" style="border-radius: 0;">В ПРОЦЕССЕ</span>
+                                            {% endif %}
+                                        </div>
+                                        <div class="card-body py-2">
+                                            <div class="d-flex justify-content-between mb-1">
+                                                <span class="text-muted small">Время:</span>
+                                                <span class="text-warning small">{{ t_data.time_spent }} сек</span>
                                             </div>
-                                        {% endif %}
-                                    {% endif %}
+                                            <div class="d-flex justify-content-between">
+                                                <span class="text-muted small">Ошибки:</span>
+                                                <span class="text-danger small">{{ t_data.errors }}</span>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             {% endfor %}
+                            </div>
+
+                            <!-- Детальный лог -->
+                            <h5 class="text-info border-bottom border-secondary pb-2 mb-3 mt-4">Подробный лог действий (снизу вверх)</h5>
+                            
+                            <div class="bg-dark p-3 border border-secondary" style="max-height: 500px; overflow-y: auto;">
+                                <div class="timeline">
+                                    {% for item in m_data.timeline %}
+                                        <div class="mb-2 pb-2 border-bottom border-secondary" style="font-size: 0.9rem;">
+                                            <span class="text-secondary font-monospace">[{{ item.time.strftime('%H:%M:%S') }}]</span>
+                                            <span class="badge bg-secondary ms-2" style="border-radius: 0;">{{ item.task }}</span>
+                                            
+                                            <span class="text-light ms-2">Действие: <strong>"{{ item.text }}"</strong></span>
+                                            
+                                            {% if item.success %}
+                                                <span class="badge bg-success ms-2" style="border-radius: 0;">ВЕРНО</span>
+                                            {% else %}
+                                                <span class="badge bg-danger ms-2" style="border-radius: 0;">ОШИБКА</span>
+                                            {% endif %}
+                                            
+                                            {% if item.think_time > 0 %}
+                                                <div class="text-muted small ms-5">&rdsh; Время на раздумье: <span class="text-warning">{{ item.think_time }} сек</span></div>
+                                            {% endif %}
+                                            
+                                            {% if item.is_final_success %}
+                                                <div class="mt-2 p-2 bg-success bg-opacity-25 border border-success text-success small ms-5">
+                                                    ✅ <strong>Задание выполнено!</strong>
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                    {% endfor %}
+                                    {% if not m_data.timeline %}
+
+                                        <div class="text-muted text-center">Действий пока нет</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            
                         </div>
+                        {% set first_mission_pane = False %}
+                        {% endfor %}
                     </div>
+
                 </div>
                 {% endfor %}
+                
             </div>
         </div>
     </div>

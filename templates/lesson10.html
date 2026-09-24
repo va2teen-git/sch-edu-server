@@ -215,7 +215,7 @@
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({ 
-                mission_name: mission, 
+                mission_name: 'Теория систем (11 кл) :: ' + mission, 
                 success: success,
                 start_time: startTimes[mission].toISOString(),
                 time_spent_sec: timeSpentSec,
@@ -235,71 +235,43 @@
 
     // --- МИССИЯ 1 (ЧЕРНЫЕ ЯЩИКИ) ---
     let m1_progress = 0;
-    let m1_funcs = {};
-    let m1_target_val = 0;
-    let m1_start_val = 0;
     
-    function generateM1() {
-        const ops = [
-            { s: '+', f: (x, n)=>x+n },
-            { s: '-', f: (x, n)=>x-n },
-            { s: '*', f: (x, n)=>x*n }
-        ];
+    async function generateM1() {
+        const res = await fetch('/api/sys11/m1', {
+            method: 'POST', headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ action: 'generate' })
+        });
+        const data = await res.json();
         
-        let a_op = ops[Math.floor(Math.random()*ops.length)];
-        let b_op = ops[Math.floor(Math.random()*ops.length)];
-        let c_op = ops[Math.floor(Math.random()*ops.length)];
+        document.getElementById('hintA').innerText = `${data.funcs.A.op} ${data.funcs.A.n}`;
+        document.getElementById('hintB').innerText = `${data.funcs.B.op} ${data.funcs.B.n}`;
+        document.getElementById('hintC').innerText = `${data.funcs.C.op} ${data.funcs.C.n}`;
         
-        let a_n = Math.floor(Math.random()*10)+2;
-        let b_n = Math.floor(Math.random()*10)+2;
-        let c_n = Math.floor(Math.random()*10)+2;
-        
-        m1_funcs = {
-            'A': (x) => a_op.f(x, a_n),
-            'B': (x) => b_op.f(x, b_n),
-            'C': (x) => c_op.f(x, c_n)
-        };
-        
-        document.getElementById('hintA').innerText = `${a_op.s} ${a_n}`;
-        document.getElementById('hintB').innerText = `${b_op.s} ${b_n}`;
-        document.getElementById('hintC').innerText = `${c_op.s} ${c_n}`;
-        
-        m1_start_val = Math.floor(Math.random()*10)+1;
-        
-        // Randomly pick a correct sequence to ensure it's solvable
-        const seqs = [
-            ['A','B','C'], ['A','C','B'], ['B','A','C'],
-            ['B','C','A'], ['C','A','B'], ['C','B','A']
-        ];
-        const correct_seq = seqs[Math.floor(Math.random()*seqs.length)];
-        
-        let val = m1_start_val;
-        val = m1_funcs[correct_seq[0]](val);
-        val = m1_funcs[correct_seq[1]](val);
-        val = m1_funcs[correct_seq[2]](val);
-        m1_target_val = val;
-        
-        document.getElementById('m1-input').innerText = m1_start_val;
-        document.getElementById('m1-target').innerText = m1_target_val;
+        document.getElementById('m1-input').innerText = data.start_val;
+        document.getElementById('m1-target').innerText = data.target_val;
         
         document.getElementById('box1').value = '';
         document.getElementById('box2').value = '';
         document.getElementById('box3').value = '';
     }
     
-    function checkM1() {
+    async function checkM1() {
+        if (m1_progress >= 3) return;
         const b1 = document.getElementById('box1').value;
         const b2 = document.getElementById('box2').value;
         const b3 = document.getElementById('box3').value;
         if(!b1 || !b2 || !b3) return;
         
-        let val = m1_start_val;
-        val = m1_funcs[b1](val);
-        val = m1_funcs[b2](val);
-        val = m1_funcs[b3](val);
+        const res = await fetch('/api/sys11/m1', {
+            method: 'POST', headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ action: 'check', seq: [b1, b2, b3] })
+        });
+        const data = await res.json();
         
-        const success = (val === m1_target_val);
-        logAction('М1 (Ящики)', `Ввел цепь ${b1}-${b2}-${b3} (вых: ${val})`, success);
+        if (data.invalid) return; // Spam click or double check
+        
+        const success = data.success;
+        logAction('М1 (Ящики)', `Ввел цепь ${b1}-${b2}-${b3} (вых: ${data.val})`, success);
         
         const resEl = document.getElementById('res1');
         if (success) {
@@ -307,7 +279,7 @@
             document.getElementById('m1-prog').style.width = (m1_progress/3*100) + '%';
             document.getElementById('m1-count').innerText = m1_progress;
             document.getElementById('tab1-count').innerText = m1_progress;
-            resEl.innerHTML = `<span class="text-success">✅ Верно! Получено ${val}. Сборка #${m1_progress} готова.</span>`;
+            resEl.innerHTML = `<span class="text-success">✅ Верно! Получено ${data.val}. Сборка #${m1_progress} готова.</span>`;
             if(m1_progress >= 3) {
                 sendTel('М1 (Ящики)', true);
                 resEl.innerHTML = '<span class="text-success">🏆 МИССИЯ ВЫПОЛНЕНА!</span>';
@@ -315,13 +287,11 @@
                 setTimeout(generateM1, 1500);
             }
         } else {
-            if (hardcoreMode) {
-                m1_progress = 0;
-            }
+            if (hardcoreMode) m1_progress = 0;
             document.getElementById('m1-prog').style.width = (m1_progress/3*100) + '%';
             document.getElementById('m1-count').innerText = m1_progress;
             document.getElementById('tab1-count').innerText = m1_progress;
-            resEl.innerHTML = `<span class="text-danger">❌ Ошибка! На выходе ${val}, а нужно ${m1_target_val}. ${hardcoreMode ? 'Прогресс сброшен.' : 'Попробуйте еще раз!'}</span>`;
+            resEl.innerHTML = `<span class="text-danger">❌ Ошибка! На выходе ${data.val}, а нужно ${data.target}. ${hardcoreMode ? 'Прогресс сброшен.' : 'Попробуйте еще раз!'}</span>`;
             sendTel('М1 (Ящики)', false);
             setTimeout(generateM1, 2000);
         }
@@ -393,34 +363,40 @@
 
     // --- МИССИЯ 3 (TCP) ---
     let m3_progress = 0;
-    let m3_curr_win = 4;
-    let m3_is_loss = false;
-    let m3_correct_ans = 0;
     
-    function generateM3() {
-        m3_curr_win = Math.floor(Math.random() * 15) + 2;
-        m3_is_loss = Math.random() > 0.6; // 40% chance of packet loss
+    async function generateM3() {
+        const res = await fetch('/api/sys11/m3', {
+            method: 'POST', headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ action: 'generate' })
+        });
+        const data = await res.json();
         
-        document.getElementById('tcp-win').innerText = m3_curr_win;
+        document.getElementById('tcp-win').innerText = data.win;
         
-        if (m3_is_loss) {
+        if (data.is_loss) {
             document.getElementById('tcp-event').innerHTML = '⚠️ Пакет потерян (Timeout). <br><span class="small text-danger">Отрицательная ОС сработала, сеть перегружена!</span>';
-            m3_correct_ans = Math.max(1, Math.floor(m3_curr_win / 2));
         } else {
             document.getElementById('tcp-event').innerHTML = '✅ Получены все ACK. <br><span class="small text-success">Сеть свободна, можно разгоняться!</span>';
-            m3_correct_ans = m3_curr_win + 1;
         }
         document.getElementById('tcp-ans').value = '';
     }
     
-    function checkM3() {
+    async function checkM3() {
         if(m3_progress >= 8) return;
         
         const ans = parseInt(document.getElementById('tcp-ans').value);
         if(isNaN(ans)) return;
         
-        const success = (ans === m3_correct_ans);
-        logAction('М3 (TCP)', `Ввел окно ${ans} (ожидалось ${m3_correct_ans})`, success);
+        const res = await fetch('/api/sys11/m3', {
+            method: 'POST', headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ action: 'check', ans: ans })
+        });
+        const data = await res.json();
+        
+        if (data.invalid) return; // block spam clicks
+        
+        const success = data.success;
+        logAction('М3 (TCP)', `Ввел окно ${ans}`, success);
         
         const resEl = document.getElementById('res3');
         if (success) {
@@ -441,9 +417,9 @@
             document.getElementById('m3-prog').style.width = (m3_progress/8*100) + '%';
             document.getElementById('m3-count').innerText = m3_progress;
             document.getElementById('tab3-count').innerText = m3_progress;
-            resEl.innerHTML = `<span class="text-danger">❌ Ошибка сети! Правильное значение было: ${m3_correct_ans}. ${hardcoreMode ? 'Прогресс сброшен.' : 'Идем дальше.'}</span>`;
+            resEl.innerHTML = `<span class="text-danger">❌ Сеть обрушена! ${hardcoreMode ? 'Прогресс сброшен.' : 'Попробуйте еще раз!'}</span>`;
             sendTel('М3 (TCP)', false);
-            setTimeout(generateM3, 2500);
+            setTimeout(generateM3, 2000);
         }
     }
 

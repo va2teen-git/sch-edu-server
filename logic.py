@@ -89,3 +89,77 @@ def introduce_noise(bits, num_errors=1):
     for pos in positions:
         noisy[pos] = 1 - noisy[pos]
     return noisy
+
+
+# --- Law & Compliance (Урок 10 класс) ---
+def generate_law_incidents():
+    import random
+    
+    apps = ['WordProcessor', 'GraphicEditor', 'CodeIDE', 'DatabaseManager', '3DEngine', 'VideoEditor']
+    licenses = ['GPLv3', 'MIT', 'Apache 2.0', 'Commercial', 'Freeware', 'Shareware']
+    
+    incidents = []
+    
+    num_incidents = random.randint(15, 20)
+    for i in range(num_incidents):
+        incident_type = random.choice(['software', 'data'])
+        
+        if incident_type == 'software':
+            app = random.choice(apps) + str(random.randint(2020, 2026))
+            lic = random.choice(licenses)
+            
+            actions = ['installed_free', 'modified_and_sold_closed_source', 'expired_trial', 'paid_subscription']
+            action = random.choice(actions)
+            
+            incidents.append({
+                'id': i,
+                'type': 'software',
+                'app': app,
+                'license': lic,
+                'action': action
+            })
+            
+        else:
+            data_types = ['email', 'phone', 'biometric', 'passport']
+            d_type = random.choice(data_types)
+            consent = random.choice([True, False])
+            
+            incidents.append({
+                'id': i,
+                'type': 'data',
+                'data_type': d_type,
+                'user_consent': consent
+            })
+            
+    return incidents
+
+# --- Networks & Protocols (Урок 10 класс) ---
+def generate_network_l1_task():
+    import random
+    tasks = [
+        {"desc": "Обеспечивает маршрутизацию пакетов между различными сетями (например, домашней и провайдером). Выбирает оптимальный путь.", "ans": "Маршрутизатор", "hint": "Слово говорит само за себя - он строит маршруты (роутер)."},
+        {"desc": "Соединяет устройства в пределах одной локальной сети, отправляя пакеты только на нужный MAC-адрес.", "ans": "Коммутатор", "hint": "Он коммутирует порты напрямую, как свитч."},
+        {"desc": "Устаревшее устройство. Просто ретранслирует полученный сигнал на все остальные порты, создавая коллизии (Hub).", "ans": "Концентратор", "hint": "Он концентрирует подключения, но не обладает интеллектом."},
+        {"desc": "Топология сети, в которой все компьютеры подключены к одному центральному узлу.", "ans": "Звезда", "hint": "Центральный узел и расходящиеся от него лучи."},
+        {"desc": "Топология, где все узлы соединены одним общим кабелем. Выход из строя кабеля валит всю сеть.", "ans": "Шина", "hint": "Единый канал передачи данных для всех."}
+    ]
+    return random.choice(tasks)
+
+def generate_network_l2_task():
+    import random
+    base_ip = f"192.168.{random.randint(1, 10)}"
+    ip_src = f"{base_ip}.{random.randint(10, 50)}"
+    is_local = random.choice([True, False])
+    if is_local:
+        ip_dst = f"{base_ip}.{random.randint(51, 100)}"
+        ans = "Локально"
+    else:
+        ip_dst = f"192.168.{random.randint(11, 20)}.{random.randint(10, 50)}"
+        ans = "Шлюз"
+    return {
+        "ip_src": ip_src,
+        "mask": "255.255.255.0",
+        "ip_dst": ip_dst,
+        "ans": ans,
+        "hint": "Маска 255.255.255.0 означает, что первые 3 числа (октета) должны совпадать, чтобы узлы были в одной сети. Иначе - пакет идет через шлюз."
+    }

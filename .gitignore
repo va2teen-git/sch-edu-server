@@ -5,3 +5,12 @@ build/
 dist/
 *.spec
 .env
+
+scratch_*.py
+create_template.py
+patch_*.py
+err.txt
+out.txt
+*.db-shm
+*.db-wal
+server.log*

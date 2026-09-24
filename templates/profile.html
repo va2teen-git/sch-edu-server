@@ -1,0 +1,112 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<style>
+    .cyber-card {
+        background-color: #1e1e2f;
+        border: 1px solid #444;
+        padding: 20px;
+        color: #fff;
+    }
+    .stat-box {
+        background: #2a2a40;
+        border: 1px solid #555;
+        padding: 15px;
+        margin-bottom: 20px;
+    }
+    .log-table th, .log-table td {
+        border: 1px solid #555;
+        padding: 8px;
+        color: #ddd;
+    }
+    .log-table th { background: #333; }
+    .nav-tabs .nav-link { color: #aaa; background: #222; border: 1px solid #444; margin-right: 5px; }
+    .nav-tabs .nav-link.active { color: #00ffcc; background: #2a2a40; border-bottom-color: #2a2a40; font-weight: bold; }
+    
+    h2, h4, h5 { color: #00ffcc; }
+</style>
+
+<div class="mb-3">
+    <a href="/menu" style="color: #00ffcc; text-decoration: none; font-weight: bold;">← В главное меню</a>
+</div>
+
+<h2>Моя Статистика и Телеметрия</h2>
+
+{% if not missions_data %}
+    <div class="cyber-card mt-4">
+        <p>Вы еще не открыли ни одного урока или не завершили ни одного задания. Пройдите уроки, чтобы здесь появилась статистика.</p>
+    </div>
+{% else %}
+    <div class="cyber-card mt-4">
+        <ul class="nav nav-tabs" id="profileTabs" role="tablist">
+            {% set first_tab = True %}
+            {% for mission, attempts in missions_data.items() %}
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link {% if first_tab %}active{% endif %}" 
+                            id="tab-btn-{{ loop.index }}" 
+                            data-bs-toggle="tab" 
+                            data-bs-target="#tab-content-{{ loop.index }}" 
+                            type="button" role="tab">
+                        {{ mission }}
+                    </button>
+                </li>
+                {% set first_tab = False %}
+            {% endfor %}
+        </ul>
+        
+        <div class="tab-content mt-4" id="profileTabsContent">
+            {% set first_pane = True %}
+            {% for mission, attempts in missions_data.items() %}
+                <div class="tab-pane fade {% if first_pane %}show active{% endif %}" id="tab-content-{{ loop.index }}" role="tabpanel">
+                    
+                    {% for att in attempts %}
+                    <div class="stat-box">
+                        <h5>Попытка от: {{ att.start_time }}</h5>
+                        <div class="row">
+                            <div class="col-md-3"><strong>Затрачено времени:</strong> {{ att.time_spent }} сек.</div>
+                            <div class="col-md-3"><strong>Всего кликов/ответов:</strong> {{ att.attempts }}</div>
+                            <div class="col-md-3"><strong>Статус:</strong> {% if att.success %}<span class="text-success">Успешно</span>{% else %}<span class="text-danger">Не завершено</span>{% endif %}</div>
+                        </div>
+                        
+                        <h6 class="mt-4" style="color: #00b3ff;">Подробный лог действий (снизу вверх)</h6>
+                        <table class="table log-table mt-2">
+                            <thead>
+                                <tr>
+                                    <th>№</th>
+                                    <th>Время (UTC)</th>
+                                    <th>Действие / Задание (Ответ)</th>
+                                    <th>Результат</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for log_item in att.log|reverse %}
+                                <tr>
+                                    <td>{{ loop.length - loop.index0 }}</td>
+                                    <td>{{ log_item.time }}</td>
+                                    <td>{{ log_item.input }}</td>
+                                    <td>
+                                        {% if log_item.success %}
+                                            <span class="text-success">✔ Верно</span>
+                                        {% else %}
+                                            <span class="text-danger">✖ Ошибка</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                                {% if not att.log %}
+                                <tr>
+                                    <td colspan="4" class="text-center">Нет подробных логов для этой попытки</td>
+                                </tr>
+                                {% endif %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% endfor %}
+                    
+                </div>
+                {% set first_pane = False %}
+            {% endfor %}
+        </div>
+    </div>
+{% endif %}
+{% endblock %}

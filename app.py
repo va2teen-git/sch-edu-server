@@ -5,7 +5,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_session import Session
 from sqlalchemy import event
 from sqlalchemy.engine import Engine
-from logic import generate_random_bits, repetition_encode, introduce_noise, repetition_decode, hamming_encode, calculate_syndrome, add_parity_bit
+from logic import generate_random_bits, repetition_encode, introduce_noise, repetition_decode, hamming_encode, calculate_syndrome, add_parity_bit, generate_law_incidents
 from datetime import datetime
 import random
 import secrets
@@ -16,6 +16,37 @@ if getattr(sys, 'frozen', False):
     app = Flask(__name__, template_folder=template_folder, static_folder=static_folder)
 else:
     app = Flask(__name__)
+
+import logging
+from logging.handlers import RotatingFileHandler
+import os
+
+log_formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(clientip)s - %(message)s')
+log_file_path = os.path.join(os.getcwd(), 'server.log')
+log_handler = RotatingFileHandler(log_file_path, maxBytes=5*1024*1024, backupCount=2, encoding='utf-8')
+log_handler.setFormatter(log_formatter)
+log_handler.setLevel(logging.INFO)
+
+app.logger.setLevel(logging.INFO)
+app.logger.addHandler(log_handler)
+
+# Custom filter to inject client IP safely
+class ContextFilter(logging.Filter):
+    def filter(self, record):
+        from flask import request, has_request_context
+        if has_request_context():
+            record.clientip = request.remote_addr or 'unknown'
+        else:
+            record.clientip = 'system'
+        return True
+
+app.logger.addFilter(ContextFilter())
+
+werkzeug_logger = logging.getLogger('werkzeug')
+werkzeug_logger.addHandler(log_handler)
+werkzeug_logger.setLevel(logging.INFO)
+werkzeug_logger.addFilter(ContextFilter())
+
 
 # Generating a secure random secret key for the server instance
 app.secret_key = secrets.token_hex(32)
@@ -174,7 +205,9 @@ def login():
             session['grade'] = 'teacher'
             return redirect('/teacher')
                 
-        full_name = f"{name} ({grade} кл)"
+        grade_map = {'7': '7', '8': '8', '9': '9', '10-gum': '10 Гум', '10-tech': '10 Тех', '11-gum': '11 Гум', '11-tech': '11 Тех'}
+        display_grade = grade_map.get(grade, grade)
+        full_name = f"{name} ({display_grade} кл)"
         session['student_name'] = full_name
         session['grade'] = grade
         
@@ -305,38 +338,75 @@ def check_m2():
         log_action(session['student_name'], f"М2: [ОШИБКА] Выбрал поз {pos} вместо {correct_pos}.")
         return jsonify({"success": False, "msg": f"Ошибка! Выбрана позиция {pos}. Ошибка реально была в позиции {correct_pos}."})
 
+
+
 @app.route('/teacher')
 def teacher():
     if session.get('student_name') != '#учитель#':
         return redirect('/')
         
-    logs = LogEvent.query.order_by(LogEvent.timestamp.desc()).all()
     attempts = TaskAttempt.query.order_by(TaskAttempt.id.desc()).all()
     
     students = {}
     import json
     from datetime import datetime
     
-    for log in logs:
-        if log.student_name not in students:
-            students[log.student_name] = {'timeline': [], 'attempts': []}
-        students[log.student_name]['timeline'].append({
-            'time': log.timestamp,
-            'type': 'general',
-            'text': log.action
-        })
-        
     for attempt in attempts:
-        if attempt.student_name not in students:
-            students[attempt.student_name] = {'timeline': [], 'attempts': []}
+        s_name = attempt.student_name
         
-        parsed = json.loads(attempt.action_log)
+        lesson_name = attempt.mission_name
+        task_name = 'Общее'
+        if ' :: ' in attempt.mission_name:
+            lesson_name, task_name = attempt.mission_name.split(' :: ', 1)
+            
+        if s_name not in students:
+            students[s_name] = {'missions': {}}
+            
+        if lesson_name not in students[s_name]['missions']:
+            students[s_name]['missions'][lesson_name] = {
+                'tasks': {},
+                'timeline': [],
+                'global_time': 0,
+                'global_errors': 0,
+                'tasks_completed': set()
+            }
+            
+        lesson_obj = students[s_name]['missions'][lesson_name]
+        
+        if task_name not in lesson_obj['tasks']:
+            lesson_obj['tasks'][task_name] = {
+                'attempts_list': [],
+                'time_spent': 0,
+                'errors': 0,
+                'success': False
+            }
+        
+        task_obj = lesson_obj['tasks'][task_name]
+        
+        parsed = []
+        try:
+            if attempt.action_log:
+                parsed = json.loads(attempt.action_log)
+        except:
+            pass
+            
         attempt.action_log_parsed = parsed
-        students[attempt.student_name]['attempts'].append(attempt)
+        task_obj['attempts_list'].append(attempt)
+        
+        if attempt.success:
+            task_obj['success'] = True
+            lesson_obj['tasks_completed'].add(task_name)
+            
+        # Calculate stats for the task based on the LATEST attempt
+        # or aggregate them. We'll aggregate time and errors from parsed log.
+        task_time = attempt.time_spent_sec
+        task_errors = sum(1 for act in parsed if not act.get('success', True))
+        
+        task_obj['time_spent'] = max(task_obj['time_spent'], task_time)
+        task_obj['errors'] = task_errors
         
         last_time = None
         for idx, act in enumerate(parsed):
-            # Parse ISO8601 (e.g. 2026-09-22T14:02:25.123Z)
             try:
                 dt = datetime.fromisoformat(act['time'].replace('Z', ''))
             except:
@@ -347,51 +417,33 @@ def teacher():
                 think_time = round((dt - last_time).total_seconds(), 1)
             last_time = dt
             
-            is_final_success = act['success'] and attempt.success and (idx == len(parsed) - 1)
+            is_final_success = act.get('success', False) and attempt.success and (idx == len(parsed) - 1)
             
-            students[attempt.student_name]['timeline'].append({
+            lesson_obj['timeline'].append({
                 'time': dt,
+                'task': task_name,
                 'type': 'action',
-                'mission': attempt.mission_name,
-                'text': act['input'],
-                'success': act['success'],
+                'text': act.get('input', ''),
+                'success': act.get('success', False),
+                'attempt_num': attempt.attempts_count,
                 'think_time': think_time,
-                'attempt_num': idx + 1,
                 'is_final_success': is_final_success,
-                'total_time': attempt.time_spent_sec,
-                'total_attempts': attempt.attempts_count
+                'total_attempts': attempt.attempts_count,
+                'total_time': attempt.time_spent_sec
             })
             
-    # Compute chart data and sort timelines
-    for s_name, s_data in students.items():
-        s_data['timeline'].sort(key=lambda x: x['time'], reverse=True)
-        
-        # Chart 1: Time & Attempts per mission
-        missions_map = {}
-        total_correct = 0
-        total_errors = 0
-        
-        # Add data from new telemetry
-        for attempt in s_data['attempts']:
-            m_name = attempt.mission_name
-            if m_name not in missions_map:
-                missions_map[m_name] = {'time': 0, 'attempts': 0}
-            missions_map[m_name]['time'] += attempt.time_spent_sec
-            missions_map[m_name]['attempts'] += attempt.attempts_count
+    # Sort timelines globally per lesson
+    for s_data in students.values():
+        for m_data in s_data['missions'].values():
+            m_data['timeline'].sort(key=lambda x: x['time'], reverse=True)
             
-            for act in attempt.action_log_parsed:
-                if act['success']: total_correct += 1
-                else: total_errors += 1
+            # Global stats aggregate
+            for t_data in m_data['tasks'].values():
+                m_data['global_time'] += t_data['time_spent']
+                m_data['global_errors'] += t_data['errors']
                 
-        s_data['charts'] = {
-            'labels': list(missions_map.keys()),
-            'times': [m['time'] for m in missions_map.values()],
-            'attempts': [m['attempts'] for m in missions_map.values()],
-            'correct': total_correct,
-            'errors': total_errors
-        }
-        
     return render_template('teacher.html', students=students)
+
 
 @app.route('/lesson/grade11/codes')
 def lesson_codes():
@@ -479,6 +531,208 @@ def check_octal_level():
     else:
         log_action(session['student_name'], f"Урок 8кл (Ур {level}): [ОШИБКА] Ввел {user_answer} вместо {correct_answer}")
         return jsonify({"success": False, "msg": "Ошибка! Код не подходит."})
+
+
+
+@app.route('/api/sys11/m1', methods=['POST'])
+def api_sys11_m1():
+    if 'student_name' not in session: return jsonify({"error": "No session"})
+    data = request.json
+    action = data.get('action')
+    import random
+    
+    if action == 'generate':
+        ops = [('+', lambda x, n: x+n), ('-', lambda x, n: x-n), ('*', lambda x, n: x*n)]
+        a_op_idx = random.randint(0, 2)
+        b_op_idx = random.randint(0, 2)
+        c_op_idx = random.randint(0, 2)
+        
+        a_n = random.randint(2, 11)
+        b_n = random.randint(2, 11)
+        c_n = random.randint(2, 11)
+        
+        start_val = random.randint(1, 10)
+        
+        seqs = [('A','B','C'), ('A','C','B'), ('B','A','C'), ('B','C','A'), ('C','A','B'), ('C','B','A')]
+        correct_seq = random.choice(seqs)
+        
+        val = start_val
+        funcs = {
+            'A': lambda x: ops[a_op_idx][1](x, a_n),
+            'B': lambda x: ops[b_op_idx][1](x, b_n),
+            'C': lambda x: ops[c_op_idx][1](x, c_n),
+        }
+        val = funcs[correct_seq[0]](val)
+        val = funcs[correct_seq[1]](val)
+        val = funcs[correct_seq[2]](val)
+        
+        session['sys11_m1_target'] = val
+        session['sys11_m1_start'] = start_val
+        session['sys11_m1_funcs'] = {
+            'A': {'op': ops[a_op_idx][0], 'n': a_n},
+            'B': {'op': ops[b_op_idx][0], 'n': b_n},
+            'C': {'op': ops[c_op_idx][0], 'n': c_n}
+        }
+        
+        return jsonify({
+            'start_val': start_val,
+            'target_val': val,
+            'funcs': session['sys11_m1_funcs']
+        })
+        
+    elif action == 'check':
+        seq = data.get('seq')
+        if 'sys11_m1_target' not in session:
+            return jsonify({'success': False, 'invalid': True, 'error': 'No active task. Please wait for next generation.'})
+            
+        funcs_meta = session['sys11_m1_funcs']
+        val = session['sys11_m1_start']
+        
+        ops_map = {'+': lambda x, n: x+n, '-': lambda x, n: x-n, '*': lambda x, n: x*n}
+        for step in seq:
+            meta = funcs_meta.get(step)
+            if not meta: return jsonify({'success': False})
+            val = ops_map[meta['op']](val, meta['n'])
+            
+        if val == session['sys11_m1_target']:
+            session.pop('sys11_m1_target', None) # Burn the token
+            return jsonify({'success': True, 'val': val})
+        else:
+            return jsonify({'success': False, 'val': val, 'target': session['sys11_m1_target']})
+    
+    return jsonify({"error": "Unknown action"})
+
+@app.route('/api/sys11/m3', methods=['POST'])
+def api_sys11_m3():
+    if 'student_name' not in session: return jsonify({"error": "No session"})
+    data = request.json
+    action = data.get('action')
+    import random
+    
+    if action == 'generate':
+        win = random.randint(2, 16)
+        is_loss = random.random() > 0.6
+        
+        if is_loss:
+            correct = max(1, win // 2)
+        else:
+            correct = win + 1
+            
+        session['sys11_m3_ans'] = correct
+        return jsonify({'win': win, 'is_loss': is_loss})
+        
+    elif action == 'check':
+        ans = data.get('ans')
+        if 'sys11_m3_ans' not in session:
+            return jsonify({'success': False, 'invalid': True, 'error': 'No active task. Please wait for next generation.'})
+            
+        if ans == session['sys11_m3_ans']:
+            session.pop('sys11_m3_ans', None) # Burn the token
+            return jsonify({'success': True})
+        else:
+            return jsonify({'success': False})
+    
+    return jsonify({"error": "Unknown action"})
+
+@app.route('/lesson/grade10/law')
+def lesson_law():
+    if 'student_name' not in session: return redirect('/')
+    log_action(session['student_name'], "Открыл Урок 12 (10кл): Законодательство в области ПО и данных")
+    
+    # Генерируем уникальные инциденты для ученика
+    incidents = generate_law_incidents()
+    session['law_incidents'] = incidents
+    
+    import json
+    incidents_json = json.dumps(incidents)
+    
+    return render_template('law10.html', incidents_json=incidents_json)
+
+
+@app.route('/api/law_task', methods=['POST'])
+def api_law_task():
+    if 'student_name' not in session: return jsonify({"error": "No session"})
+    
+    data = request.json
+    level = data.get('level', 1)
+    import random
+    
+    if level == 1:
+        tasks = [
+            {"doc_type": "ЗАЯВКА НА ИСПОЛЬЗОВАНИЕ ПО №45-А", "department": "Отдел видеомонтажа", "software": "DaVinci Resolve (Взломанная версия)", "desc": "Системный администратор установил версию с торрент-трекера. Просим утвердить использование.", "ans": "Нарушение", "hint": "Взлом коммерческого ПО - пиратство."},
+            {"doc_type": "ЗАЯВКА НА ИСПОЛЬЗОВАНИЕ ПО №12-Б", "department": "Отдел разработки", "software": "Библиотека шифрования (GPLv3)", "desc": "Планируем внедрить эту библиотеку в наше проприетарное приложение. Исходный код мы не откроем.", "ans": "Нарушение", "hint": "GPL требует открытия исходного кода любой программы, использующей код GPL."},
+            {"doc_type": "ЗАЯВКА НА ИСПОЛЬЗОВАНИЕ ПО №88-В", "department": "Бухгалтерия", "software": "Архиватор (Пробная версия)", "desc": "Установлен 40 дней назад. При запуске просит купить лицензию, но работает.", "ans": "Нарушение", "hint": "Это Shareware. После пробного периода программу нужно купить или удалить."},
+            {"doc_type": "ЗАЯВКА НА ИСПОЛЬЗОВАНИЕ ПО №02-Г", "department": "Отдел 3D", "software": "Blender", "desc": "Скачана с сайта. Лицензия позволяет коммерческое использование. Код менять не будем.", "ans": "Open Source", "hint": "Blender - свободное ПО (GNU GPL), разрешает коммерческое использование."},
+            {"doc_type": "ЗАЯВКА НА ИСПОЛЬЗОВАНИЕ ПО №15-Д", "department": "Аналитика", "software": "PDF-ридер", "desc": "Бесплатна, но запрещает декомпиляцию. Исходного кода нет.", "ans": "Freeware", "hint": "Freeware - бесплатное ПО с закрытым кодом."},
+            {"doc_type": "ЗАЯВКА НА ИСПОЛЬЗОВАНИЕ ПО №16-Е", "department": "Отдел продаж", "software": "Microsoft Office (Ключ из интернета)", "desc": "Нашли в интернете корпоративный ключ активации и активировали офис на 50 ПК.", "ans": "Нарушение", "hint": "Использование чужих корпоративных ключей - это незаконное использование (пиратство)."},
+            {"doc_type": "ЗАЯВКА НА ИСПОЛЬЗОВАНИЕ ПО №17-Ж", "department": "Разработка", "software": "Утилита (MIT License)", "desc": "Будем использовать код утилиты в нашем закрытом коммерческом проекте.", "ans": "Open Source", "hint": "Лицензия MIT (в отличие от GPL) позволяет использовать код в проприетарных проектах без открытия исходников."},
+            {"doc_type": "ЗАЯВКА НА ИСПОЛЬЗОВАНИЕ ПО №18-З", "department": "Колл-центр", "software": "Skype", "desc": "Скачан официально. Используется для связи с клиентами. Код закрыт, денег не просит.", "ans": "Freeware", "hint": "Классический пример Freeware."},
+            {"doc_type": "ЗАЯВКА НА ИСПОЛЬЗОВАНИЕ ПО №19-И", "department": "Архитектура", "software": "AutoCAD (Студенческая версия)", "desc": "Студент-практикант установил свою студенческую лицензию, чтобы мы могли делать коммерческие чертежи.", "ans": "Нарушение", "hint": "Студенческие (Educational) лицензии строго запрещают коммерческое использование."},
+            {"doc_type": "ЗАЯВКА НА ИСПОЛЬЗОВАНИЕ ПО №20-К", "department": "Серверный отдел", "software": "Ubuntu Server", "desc": "Установили на все серверы компании. Операционная система бесплатна и с открытым кодом.", "ans": "Open Source", "hint": "Linux/Ubuntu распространяется под свободными лицензиями."},
+            {"doc_type": "ЗАЯВКА НА ИСПОЛЬЗОВАНИЕ ПО №21-Л", "department": "Разработка", "software": "Текстовый редактор Sublime", "desc": "В заголовке написано 'UNREGISTERED', но мы используем его уже год для написания кода компании.", "ans": "Нарушение", "hint": "Игнорирование надписи 'UNREGISTERED' после пробного периода - нарушение лицензии Shareware."},
+            {"doc_type": "ЗАЯВКА НА ИСПОЛЬЗОВАНИЕ ПО №22-М", "department": "Дизайн", "software": "Adobe Photoshop (1 лицензия)", "desc": "Купили одну лицензию и установили на 15 компьютеров в отделе.", "ans": "Нарушение", "hint": "Нарушение условий тиражирования. 1 лицензия = 1 ПК (как правило)."},
+            {"doc_type": "ЗАЯВКА НА ИСПОЛЬЗОВАНИЕ ПО №23-Н", "department": "Сисадмины", "software": "Total Commander", "desc": "При запуске нужно нажать цифру 1, 2 или 3. Пользуемся бесплатно уже 5 лет.", "ans": "Нарушение", "hint": "Классический пример Shareware (Nagware). По истечении месяца ПО нужно купить."}
+        ]
+        return jsonify(random.choice(tasks))
+        
+    elif level == 2:
+        tasks = [
+            {"doc_type": "МАТЕРИАЛЫ ДЕЛА № 2026/АП-12", "plaintiff": "Программист Иванов", "defendant": "Программист Петров", "essence": "Истец описал алгоритм в журнале. Ответчик написал по нему программу. Истец подал в суд за кражу ИС.", "is_violation": False, "hint": "Согласно ст. 1259 ГК РФ, алгоритмы и идеи не охраняются авторским правом."},
+            {"doc_type": "МАТЕРИАЛЫ ДЕЛА № 2026/АП-15", "plaintiff": "ООО 'Игровая Студия'", "defendant": "Студент Смирнов", "essence": "Студент написал игру, не зарегистрировав её в Роспатенте. ООО начало продавать игру, заявив, что права свободны.", "is_violation": True, "hint": "Авторское право возникает по факту создания кода. Регистрация добровольна."},
+            {"doc_type": "МАТЕРИАЛЫ ДЕЛА № 2026/АП-18", "plaintiff": "Корпорация 'ОфисСофт'", "defendant": "Школа №123", "essence": "Школа купила 1 лицензию офиса и установила на 20 ПК, сославшись на образовательные цели.", "is_violation": True, "hint": "Установка одной лицензии на 20 ПК - тиражирование. Образовательные цели не отменяют договор."},
+            {"doc_type": "МАТЕРИАЛЫ ДЕЛА № 2026/АП-21", "plaintiff": "Студентка Сидорова", "defendant": "Учитель", "essence": "Учитель включил код из дипломной работы ученицы в свое платное приложение без ее ведома.", "is_violation": True, "hint": "Программа ученика - объект его авторского права. Использование без согласия запрещено."},
+            {"doc_type": "МАТЕРИАЛЫ ДЕЛА № 2026/АП-24", "plaintiff": "ЗАО 'СофтПром'", "defendant": "ООО 'Аналитика'", "essence": "Ответчик декомпилировал купленную программу для изучения её структуры в обход запрета в договоре.", "is_violation": True, "hint": "Изучение алгоритма путем декомпиляции при прямом запрете - нарушение договора."},
+            {"doc_type": "МАТЕРИАЛЫ ДЕЛА № 2026/АП-27", "plaintiff": "ООО 'Шутер'", "defendant": "ООО 'Экшен'", "essence": "Ответчик выпустил игру в том же жанре (стрелялка от первого лица), с похожей механикой прыжков и стрельбы.", "is_violation": False, "hint": "Жанры, механики и идеи не защищаются авторским правом. Главное - чтобы код и графика не были скопированы."},
+            {"doc_type": "МАТЕРИАЛЫ ДЕЛА № 2026/АП-30", "plaintiff": "Программист Васечкин", "defendant": "Переводчик Джонс", "essence": "Джонс перевел интерфейс программы Васечкина на английский язык и продает её за рубежом без разрешения.", "is_violation": True, "hint": "Перевод программы является производным произведением. Для его создания нужно согласие автора оригинала."},
+            {"doc_type": "МАТЕРИАЛЫ ДЕЛА № 2026/АП-33", "plaintiff": "Создатель языка Python", "defendant": "Банк 'Инвест'", "essence": "Банк написал свою внутреннюю финансовую систему на Python и не заплатил создателю языка.", "is_violation": False, "hint": "Языки программирования не охраняются авторским правом (ст. 1259 ГК РФ)."},
+            {"doc_type": "МАТЕРИАЛЫ ДЕЛА № 2026/АП-36", "plaintiff": "IT-Компания", "defendant": "Бывший сотрудник", "essence": "Сотрудник в рабочее время по заданию начальника написал программу. Уволившись, он забрал код и продает его.", "is_violation": True, "hint": "Это 'служебное произведение' (ст. 1295 ГК РФ). Исключительное право принадлежит работодателю."},
+            {"doc_type": "МАТЕРИАЛЫ ДЕЛА № 2026/АП-39", "plaintiff": "IT-Компания", "defendant": "Сотрудник", "essence": "Сотрудник дома, в выходной, на личном ПК написал мобильную игру. Компания требует отдать права, так как он у них работает.", "is_violation": False, "hint": "Программа создана не в рамках служебных обязанностей. Права принадлежат автору-сотруднику."}
+        ]
+        return jsonify(random.choice(tasks))
+        
+    elif level == 3:
+        tasks = [
+            {"doc_type": "ПРОТОКОЛ ПРОВЕРКИ № 152/01", "target": "Сайт школы №5", "audit_result": "На сайте опубликован список учеников с их оценками и домашними адресами. Согласий родителей нет.", "is_violation": True, "hint": "Распространение ПД требует согласия."},
+            {"doc_type": "ПРОТОКОЛ ПРОВЕРКИ № 152/05", "target": "БЦ 'Альфа'", "audit_result": "Внедрена система распознавания лиц. У всех сотрудников есть бумажные согласия на биометрию.", "is_violation": False, "hint": "Биометрия требует письменного согласия. Оно получено."},
+            {"doc_type": "ПРОТОКОЛ ПРОВЕРКИ № 152/09", "target": "Магазин 'Шопоголик'", "audit_result": "При заказе галочка 'Согласен на рекламную рассылку' проставлена по умолчанию.", "is_violation": True, "hint": "Предустановленные галочки (opt-out) запрещены, согласие должно быть активным."},
+            {"doc_type": "ПРОТОКОЛ ПРОВЕРКИ № 152/12", "target": "Больница", "audit_result": "В реанимации пациенту без сознания оказывалась помощь, данные о здоровье занесены в базу без согласия.", "is_violation": False, "hint": "Медицинская помощь в экстренных случаях допускает обработку спец. ПД без согласия."},
+            {"doc_type": "ПРОТОКОЛ ПРОВЕРКИ № 152/16", "target": "Приложение 'Фонарик'", "audit_result": "Приложение требует доступ к GPS и Контактам, иначе не работает.", "is_violation": True, "hint": "Нарушение принципа целеполагания. Данные избыточны для фонарика."},
+            {"doc_type": "ПРОТОКОЛ ПРОВЕРКИ № 152/20", "target": "Соцсеть 'VK'", "audit_result": "Выяснилось, что базы ПД российских пользователей хранятся на серверах в Мюнхене.", "is_violation": True, "hint": "Нарушение локализации. ПД граждан РФ должны быть на серверах в РФ."},
+            {"doc_type": "ПРОТОКОЛ ПРОВЕРКИ № 152/24", "target": "Банк 'Кредит'", "audit_result": "При открытии счета банк запрашивает паспорт. Клиент жалуется, что не давал согласия на передачу паспорта.", "is_violation": False, "hint": "Обработка ПД без согласия допускается, если это необходимо для исполнения закона (ЦБ обязывает банки идентифицировать клиентов)."},
+            {"doc_type": "ПРОТОКОЛ ПРОВЕРКИ № 152/28", "target": "Доставка еды", "audit_result": "Приложение передает адреса и телефоны клиентов рекламным сетям без упоминания об этом в политике.", "is_violation": True, "hint": "Передача ПД третьим лицам требует явного согласия пользователя."},
+            {"doc_type": "ПРОТОКОЛ ПРОВЕРКИ № 152/32", "target": "Фитнес-клуб", "audit_result": "Для покупки абонемента в качалку требуют принести справку от психиатра и результаты анализов крови.", "is_violation": True, "hint": "Данные избыточны по отношению к заявленной цели обработки (посещение тренажерного зала)."},
+            {"doc_type": "ПРОТОКОЛ ПРОВЕРКИ № 152/36", "target": "Сайт поиска работы", "audit_result": "Сайт парсит (собирает) резюме людей с других порталов и публикует у себя без их ведома.", "is_violation": True, "hint": "Сбор и публикация ПД из открытых источников всё равно требует правового основания (например, согласия на распространение)."},
+            {"doc_type": "ПРОТОКОЛ ПРОВЕРКИ № 152/40", "target": "Школа", "audit_result": "На входе установлен турникет по отпечатку пальца. Альтернативы по магнитной карте нет, письменные согласия не собраны.", "is_violation": True, "hint": "Биометрия в школе без согласия родителей и без альтернативного прохода незаконна."},
+            {"doc_type": "ПРОТОКОЛ ПРОВЕРКИ № 152/44", "target": "Такси 'Ветерок'", "audit_result": "Приложение запрашивает GPS-геолокацию только во время поездки для расчета маршрута.", "is_violation": False, "hint": "Сбор данных обоснован целью оказания услуги."}
+        ]
+        return jsonify(random.choice(tasks))
+
+@app.route('/lesson/grade10/networks')
+def lesson_networks():
+    if 'student_name' not in session: return redirect('/')
+    log_action(session['student_name'], "Открыл Урок 13 (10кл): Сети и Протоколы")
+    return render_template('networks10.html')
+
+@app.route('/api/networks_task', methods=['POST'])
+def api_networks_task():
+    if 'student_name' not in session: return jsonify({"error": "No session"})
+    
+    data = request.json
+    level = data.get('level', 1)
+    
+    if level == 1:
+        from logic import generate_network_l1_task
+        return jsonify(generate_network_l1_task())
+    elif level == 2:
+        from logic import generate_network_l2_task
+        return jsonify(generate_network_l2_task())
+    elif level == 3:
+        import random
+        generated_paths = []
+        for _ in range(4):
+            hops = random.randint(2, 6)
+            generated_paths.append(" ".join([f"AS{random.randint(100, 999)}" for _ in range(hops)]))
+        return jsonify({"paths": generated_paths})
 
 if __name__ == '__main__':
     from waitress import serve

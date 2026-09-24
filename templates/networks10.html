@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Урок 13: Принципы построения сетей. BGP (10 класс)</title>
+    
+    <link href="/static/bootstrap.min.css" rel="stylesheet">
+    <script src="/static/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/pyodide/v0.22.1/full/pyodide.js"></script>
+    
+    <!-- CodeMirror -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/codemirror.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/theme/dracula.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/codemirror.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/python/python.min.js"></script>
+
+    <style>
+        * { border-radius: 0 !important; }
+        body { background: #1a1a2e; color: #eee; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 20px; }
+        .cyber-card { background: #16213e; padding: 25px; box-shadow: 0 8px 16px rgba(0,0,0,0.5); border: 1px solid #0f3460; height: 100%; }
+        
+        .nav-tabs .nav-link { color: #aaa; background: #111; border: 1px solid #0f3460; }
+        .nav-tabs .nav-link.active { color: #e94560; background: #16213e; border-bottom-color: #16213e; font-weight: bold; }
+        
+        .progress-bar-custom { height: 20px; background: #111; margin-bottom: 20px; border: 1px solid #0f3460; }
+        .progress-fill { height: 100%; background: linear-gradient(90deg, #e94560, #ff8a00); width: 0%; transition: width 0.4s ease; }
+        
+        .hint-box { background: rgba(233, 69, 96, 0.2); border-left: 4px solid #e94560; padding: 15px; margin-bottom: 20px; display: none; }
+        
+        .btn-custom { background: #0f3460; color: white; border: none; padding: 10px 20px; font-weight: bold; margin-right: 10px; margin-bottom: 10px; transition: 0.2s;}
+        .btn-custom:hover { background: #1a5a9e; transform: scale(1.02); }
+        .btn-success-custom { background: #228b22; color: white; border: none; padding: 10px 20px; font-weight: bold; margin-right: 10px; margin-bottom: 10px;}
+        .btn-success-custom:hover { background: #2eaf2e; transform: scale(1.02); }
+        
+        .doc-paper { background: #0d1b2a; color: #00ffcc; padding: 20px; border: 1px solid #00ffcc; font-family: monospace; font-size: 1.1rem; margin-bottom: 20px; }
+        
+        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.02); } 100% { transform: scale(1); } }
+        .level-complete { animation: pulse 1s infinite; color: #ff8a00; text-align: center; margin-top: 20px; }
+        .theory-text { font-size: 0.95rem; line-height: 1.6; }
+        .theory-text h5 { color: #e94560; margin-top: 20px; }
+        
+        .CodeMirror { height: 250px; font-size: 14px; border: 1px solid #0f3460; margin-bottom: 15px;}
+    </style>
+</head>
+<body>
+    <div class="mb-3">
+        <a href="/menu" style="color: #e94560; text-decoration: none; font-weight: bold;">← В меню</a>
+    </div>
+
+    <div class="row">
+        <!-- Левая колонка: Теория -->
+        <div class="col-md-5 mb-4">
+            <div class="cyber-card theory-text" style="overflow-y: auto; max-height: 85vh;">
+                <h3>Теория: Компьютерные сети</h3>
+                <p>Основы построения сетей и маршрутизации. Углубленный уровень (10 класс).</p>
+                <hr style="border-color: #0f3460;">
+                
+                <h5>1. Аппаратные компоненты</h5>
+                <ul>
+                    <li><strong>Маршрутизатор (Router):</strong> Устройство сетевого уровня. Соединяет разные сети (например, LAN и Интернет). Принимает решения о пути (маршрутизирует) пакета на основе IP-адресов.</li>
+                    <li><strong>Коммутатор (Switch):</strong> Устройство канального уровня. Соединяет узлы внутри одной сети (LAN). Передает кадры только нужному порту на основе MAC-адреса.</li>
+                    <li><strong>Концентратор (Hub):</strong> Устаревший "повторитель". Тупо копирует сигнал на все порты. Создает огромный трафик и коллизии.</li>
+                </ul>
+
+                <h5>2. Топологии сетей</h5>
+                <ul>
+                    <li><strong>Звезда:</strong> Все устройства подключены к центральному узлу (коммутатору). Самая надежная и популярная сегодня топология.</li>
+                    <li><strong>Шина:</strong> Единый кабель, к которому подключены все ПК. Обрыв кабеля = падение всей сети.</li>
+                    <li><strong>Кольцо:</strong> Узлы соединены последовательно, пакет передается по кругу.</li>
+                </ul>
+
+                <h5>3. IP-адресация и Маски</h5>
+                <p><strong>IPv4-адрес</strong> — это 32-битное число (4 байта, например 192.168.1.5).<br>
+                <strong>Маска подсети</strong> показывает, какая часть IP-адреса относится к сети, а какая — к узлу в этой сети.<br>
+                <em>Пример:</em> IP 192.168.1.5, Маска 255.255.255.0. Это значит, что "192.168.1" — это адрес сети, а "5" — адрес ПК. Если этот ПК хочет отправить пакет на 192.168.1.10 — это та же сеть (отправляется напрямую через коммутатор). Если на 192.168.2.10 — сеть другая, пакет уходит на маршрутизатор (Шлюз по умолчанию).</p>
+
+                <h5>4. Протокол BGP (Border Gateway Protocol)</h5>
+                <p>Главный протокол маршрутизации Интернета. Он связывает Автономные Системы (AS) — сети крупных провайдеров и корпораций.<br>
+                BGP выбирает лучший путь для трафика. Самая простая метрика в BGP — это <strong>AS-PATH</strong> (длина пути). Чем меньше Автономных Систем нужно пересечь пакету, тем маршрут лучше.</p>
+            </div>
+        </div>
+
+        <!-- Правая колонка: Практика (Вкладки) -->
+        <div class="col-md-7">
+            <div class="cyber-card">
+                <ul class="nav nav-tabs" id="lessonTabs" role="tablist">
+                    <li class="nav-item">
+                        <button class="nav-link active" id="lvl1-tab" data-bs-toggle="tab" data-bs-target="#lvl1" type="button">Ур. 1: Аппаратура</button>
+                    </li>
+                    <li class="nav-item">
+                        <button class="nav-link" id="lvl2-tab" data-bs-toggle="tab" data-bs-target="#lvl2" type="button">Ур. 2: IP-Маршруты</button>
+                    </li>
+                    <li class="nav-item">
+                        <button class="nav-link" id="lvl3-tab" data-bs-toggle="tab" data-bs-target="#lvl3" type="button">Ур. 3: BGP Роутер (Python)</button>
+                    </li>
+                </ul>
+                
+                <div class="tab-content mt-4">
+                    <!-- УРОВЕНЬ 1 -->
+                    <div class="tab-pane fade show active" id="lvl1">
+                        <h4>Распознавание оборудования (Осталось: <span id="l1-remain">3</span>)</h4>
+                        <div class="progress-bar-custom"><div class="progress-fill" id="l1-progress"></div></div>
+                        <div id="l1-content">
+                            <p><em>Легенда:</em> Вы - сисадмин. Заказчик описывает, что ему нужно. Выберите правильное устройство или топологию.</p>
+                            <div class="doc-paper" id="l1-doc">Загрузка...</div>
+                            <div class="hint-box" id="l1-hint"></div>
+                            
+                            <div id="l1-buttons">
+                                <button class="btn-custom" onclick="checkL1('Маршрутизатор')">Маршрутизатор</button>
+                                <button class="btn-custom" onclick="checkL1('Коммутатор')">Коммутатор</button>
+                                <button class="btn-custom" onclick="checkL1('Концентратор')">Концентратор</button>
+                                <button class="btn-custom" onclick="checkL1('Звезда')">Топология: Звезда</button>
+                                <button class="btn-custom" onclick="checkL1('Шина')">Топология: Шина</button>
+                            </div>
+                        </div>
+                        <div id="l1-done" class="level-complete" style="display: none;">
+                            <h3>Уровень 1 Пройден! 🏆</h3>
+                            <button class="btn-custom mt-3" onclick="document.getElementById('lvl2-tab').click()">Перейти к Уровню 2</button>
+                        </div>
+                    </div>
+
+                    <!-- УРОВЕНЬ 2 -->
+                    <div class="tab-pane fade" id="lvl2">
+                        <h4>Анализ IP-пакетов (Осталось: <span id="l2-remain">5</span>)</h4>
+                        <div class="progress-bar-custom"><div class="progress-fill" id="l2-progress"></div></div>
+                        <div id="l2-content">
+                            <p><em>Легенда:</em> Куда отправить этот пакет? Если IP в той же подсети - отправляйте локально (в коммутатор). Если в другой - на шлюз (в маршрутизатор).</p>
+                            <div class="doc-paper" id="l2-doc">Загрузка...</div>
+                            <div class="hint-box" id="l2-hint"></div>
+                            <div id="l2-buttons">
+                                <button class="btn-success-custom" onclick="checkL2('Локально')">Отправить Локально</button>
+                                <button class="btn-custom" onclick="checkL2('Шлюз')">Отправить на Шлюз</button>
+                            </div>
+                        </div>
+                        <div id="l2-done" class="level-complete" style="display: none;">
+                            <h3>Уровень 2 Пройден! 🏆</h3>
+                            <button class="btn-custom mt-3" onclick="document.getElementById('lvl3-tab').click()">Перейти к Уровню 3</button>
+                        </div>
+                    </div>
+
+                    <!-- УРОВЕНЬ 3 -->
+                    <div class="tab-pane fade" id="lvl3">
+                        <h4>Разработка BGP (Осталось: <span id="l3-remain">8</span> тестов)</h4>
+                        <div class="progress-bar-custom"><div class="progress-fill" id="l3-progress"></div></div>
+                        <div id="l3-content">
+                            <p><em>Легенда:</em> Напишите на Python функцию <code>best_bgp_path(paths)</code>. Она принимает список строк (маршруты BGP) и должна вернуть ту строку, где меньше всего Автономных Систем (AS).</p>
+                            
+                            <textarea id="pycode">
+def best_bgp_path(paths):
+    # paths = ['AS100 AS200', 'AS100 AS300 AS400']
+    # Верните строку с минимальным количеством AS
+    
+</textarea>
+                            <div class="mt-2 text-warning" id="py-status">Инициализация Pyodide...</div>
+                            <div class="hint-box mt-2" id="l3-hint"></div>
+                            <button class="btn-success-custom mt-2" id="btn-run-code" onclick="runL3()" disabled>Отправить код на тестирование</button>
+                        </div>
+                        <div id="l3-done" class="level-complete" style="display: none;">
+                            <h3>МИССИЯ УСПЕШНО ВЫПОЛНЕНА! 🏆🚀</h3>
+                            <p>Маршрутизация настроена.</p>
+                            <button class="btn-custom mt-3" onclick="window.location.href='/menu'">Вернуться в меню</button>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let startTime = new Date();
+        let attemptCount = 0;
+        let actionLogs = [];
+        
+        function logAction(action, success) {
+            actionLogs.push({ time: new Date().toISOString(), input: action, success: success });
+            sendTelemetry('in_progress');
+        }
+        
+        function sendTelemetry(status = 'completed') {
+            const timeSpent = Math.floor((new Date() - startTime) / 1000);
+            fetch('/telemetry', {
+                method: 'POST', headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    mission_name: 'Сети и Протоколы (10кл)',
+                    start_time: startTime.toISOString(),
+                    time_spent_sec: timeSpent,
+                    attempts_count: attemptCount,
+                    success: (l1Correct >= l1Target && l2Correct >= l2Target && l3Correct >= l3Target),
+                    action_log: JSON.stringify(actionLogs),
+                    status: status
+                })
+            });
+        }
+        
+        function checkGlobalCompletion() {
+            if (l1Correct >= l1Target && l2Correct >= l2Target && l3Correct >= l3Target) {
+                sendTelemetry('completed');
+            }
+        }
+
+        // --- УРОВЕНЬ 1 ---
+        let l1Target = 3; let l1Correct = 0; let l1State = null; let l1Processing = false;
+        async function loadL1() {
+            let res = await fetch('/api/networks_task', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({level: 1}) });
+            l1State = await res.json();
+            document.getElementById('l1-doc').innerHTML = l1State.desc;
+            document.getElementById('l1-hint').style.display = 'none';
+            l1Processing = false;
+        }
+        function checkL1(userAns) {
+            if (l1Processing) return;
+            l1Processing = true; attemptCount++;
+            let isCorrect = (userAns === l1State.ans);
+            logAction(`L1: user=${userAns}, actual=${l1State.ans}`, isCorrect);
+            let hint = document.getElementById('l1-hint');
+            if (isCorrect) {
+                l1Correct++; document.getElementById('l1-remain').innerText = l1Target - l1Correct;
+                document.getElementById('l1-progress').style.width = `${(l1Correct/l1Target)*100}%`;
+                hint.innerHTML = `<strong>Верно!</strong>`; hint.style.borderLeftColor = '#228b22'; hint.style.background = 'rgba(34, 139, 34, 0.2)'; hint.style.display = 'block';
+                if (l1Correct >= l1Target) { setTimeout(() => { document.getElementById('l1-content').style.display = 'none'; document.getElementById('l1-done').style.display = 'block'; checkGlobalCompletion(); }, 1000); } else { setTimeout(() => loadL1(), 1000); }
+            } else {
+                hint.innerHTML = `<strong>Ошибка!</strong><br>` + l1State.hint; hint.style.borderLeftColor = '#e94560'; hint.style.background = 'rgba(233, 69, 96, 0.2)'; hint.style.display = 'block';
+                setTimeout(() => loadL1(), 3000);
+            }
+        }
+        loadL1();
+
+        // --- УРОВЕНЬ 2 ---
+        let l2Target = 5; let l2Correct = 0; let l2State = null; let l2Processing = false;
+        async function loadL2() {
+            let res = await fetch('/api/networks_task', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({level: 2}) });
+            l2State = await res.json();
+            let html = `Отправитель: ${l2State.ip_src}<br>Маска сети: ${l2State.mask}<br><br>Целевой IP: ${l2State.ip_dst}`;
+            document.getElementById('l2-doc').innerHTML = html;
+            document.getElementById('l2-hint').style.display = 'none';
+            l2Processing = false;
+        }
+        function checkL2(userAns) {
+            if (l2Processing) return;
+            l2Processing = true; attemptCount++;
+            let isCorrect = (userAns === l2State.ans);
+            logAction(`L2: user=${userAns}, actual=${l2State.ans}`, isCorrect);
+            let hint = document.getElementById('l2-hint');
+            if (isCorrect) {
+                l2Correct++; document.getElementById('l2-remain').innerText = l2Target - l2Correct;
+                document.getElementById('l2-progress').style.width = `${(l2Correct/l2Target)*100}%`;
+                hint.innerHTML = `<strong>Верно!</strong>`; hint.style.borderLeftColor = '#228b22'; hint.style.background = 'rgba(34, 139, 34, 0.2)'; hint.style.display = 'block';
+                if (l2Correct >= l2Target) { setTimeout(() => { document.getElementById('l2-content').style.display = 'none'; document.getElementById('l2-done').style.display = 'block'; checkGlobalCompletion(); }, 1000); } else { setTimeout(() => loadL2(), 1000); }
+            } else {
+                hint.innerHTML = `<strong>Ошибка!</strong><br>` + l2State.hint; hint.style.borderLeftColor = '#e94560'; hint.style.background = 'rgba(233, 69, 96, 0.2)'; hint.style.display = 'block';
+                setTimeout(() => loadL2(), 3000);
+            }
+        }
+        loadL2();
+
+        // --- УРОВЕНЬ 3 (Pyodide) ---
+        let l3Target = 8; let l3Correct = 0; let pyodide = null;
+        let editor = CodeMirror.fromTextArea(document.getElementById("pycode"), { mode: "python", theme: "dracula", lineNumbers: true, indentUnit: 4 });
+        
+        async function initPyodide() {
+            pyodide = await loadPyodide();
+            document.getElementById('py-status').innerText = "Готово к работе";
+            document.getElementById('py-status').className = "text-success";
+            document.getElementById('btn-run-code').disabled = false;
+        }
+        initPyodide();
+
+        async function runL3() {
+            let code = editor.getValue();
+            attemptCount++;
+            let hint = document.getElementById('l3-hint');
+            
+            try {
+                await pyodide.runPythonAsync(code);
+                
+                // Проверяем 8 тестов
+                for(let i=0; i<l3Target; i++) {
+                    let res = await fetch('/api/networks_task', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({level: 3}) });
+                    let state = await res.json();
+                    
+                    // Передаем данные в JS
+                    let pathsJson = JSON.stringify(state.paths);
+                    
+                    // Запускаем пользовательскую функцию
+                    let runCode = `
+import json
+paths = json.loads('${pathsJson}')
+best_bgp_path(paths)
+`;
+                    let result = await pyodide.runPythonAsync(runCode);
+                    
+                    // Проверяем результат
+                    let expected_hops = 999;
+                    for(let p of state.paths) {
+                        let hops = p.split(' ').length;
+                        if(hops < expected_hops) expected_hops = hops;
+                    }
+                    
+                    if(typeof result !== 'string') {
+                        throw new Error("Функция должна вернуть строку!");
+                    }
+                    if(result.split(' ').length !== expected_hops || !state.paths.includes(result)) {
+                        throw new Error(`Ошибка на тесте: ${pathsJson}. Возвращено: ${result}`);
+                    }
+                }
+                
+                // Если прошли все циклы без ошибок
+                l3Correct = l3Target;
+                document.getElementById('l3-remain').innerText = "0";
+                document.getElementById('l3-progress').style.width = `100%`;
+                logAction(`L3: pycode_success`, true);
+                
+                document.getElementById('l3-content').style.display = 'none';
+                document.getElementById('l3-done').style.display = 'block';
+                checkGlobalCompletion();
+                
+            } catch (err) {
+                logAction(`L3: pycode_err`, false);
+                hint.innerHTML = `<strong>Ошибка!</strong><br><pre style="white-space: pre-wrap; font-size:0.8rem;">${err.message}</pre>`;
+                hint.style.borderLeftColor = '#e94560'; hint.style.background = 'rgba(233, 69, 96, 0.2)'; hint.style.display = 'block';
+            }
+        }
+    </script>
+</body>
+</html>

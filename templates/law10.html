@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Урок 12: Правовая охрана программ и данных (10 класс)</title>
+    
+    <link href="/static/bootstrap.min.css" rel="stylesheet">
+    <script src="/static/bootstrap.bundle.min.js"></script>
+    
+    <style>
+        /* Глобальное правило: КАТЕГОРИЧЕСКИ БЕЗ СКРУГЛЕННЫХ УГЛОВ */
+        * {
+            border-radius: 0 !important;
+        }
+
+        body { background: #1e1e2f; color: #fff; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 20px; }
+        .cyber-card { background: #2a2a40; padding: 25px; box-shadow: 0 8px 16px rgba(0,0,0,0.5); border: 1px solid #444; height: 100%; }
+        
+        .nav-tabs .nav-link { color: #aaa; background: #222; border: 1px solid #444; }
+        .nav-tabs .nav-link.active { color: #00ffcc; background: #2a2a40; border-bottom-color: #2a2a40; font-weight: bold; }
+        
+        .progress-bar-custom { height: 20px; background: #111; overflow: hidden; margin-bottom: 20px; border: 1px solid #444; }
+        .progress-fill { height: 100%; background: linear-gradient(90deg, #00ffcc, #00b3ff); width: 0%; transition: width 0.4s ease; }
+        
+        .hint-box { background: rgba(255, 68, 68, 0.2); border-left: 4px solid #ff4444; padding: 15px; margin-bottom: 20px; display: none; }
+        
+        .btn-custom { background: #3498db; color: white; border: none; padding: 10px 20px; cursor: pointer; font-weight: bold; transition: 0.2s; margin-right: 10px; margin-bottom: 10px;}
+        .btn-custom:hover { background: #2980b9; transform: scale(1.02); }
+        .btn-success-custom { background: #00b894; color: white; border: none; padding: 10px 20px; font-weight: bold; margin-right: 10px; margin-bottom: 10px;}
+        .btn-success-custom:hover { background: #00a884; transform: scale(1.02); }
+        .btn-danger-custom { background: #ff7675; color: white; border: none; padding: 10px 20px; font-weight: bold; margin-right: 10px; margin-bottom: 10px;}
+        .btn-danger-custom:hover { background: #d63031; transform: scale(1.02); }
+        
+        /* Стили для документов */
+        .doc-paper {
+            background: #fdfdfd;
+            color: #111;
+            padding: 20px;
+            font-family: 'Times New Roman', Times, serif;
+            border: 1px solid #999;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+            line-height: 1.5;
+            font-size: 1.1rem;
+        }
+        .doc-header {
+            text-align: center;
+            font-weight: bold;
+            font-size: 1.2rem;
+            margin-bottom: 15px;
+            text-transform: uppercase;
+            border-bottom: 2px solid #111;
+            padding-bottom: 5px;
+        }
+        .doc-field {
+            margin-bottom: 10px;
+        }
+        .doc-field strong {
+            display: inline-block;
+            min-width: 150px;
+        }
+
+        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
+        .level-complete { animation: pulse 1s infinite; color: #00ffcc; text-align: center; margin-top: 20px; }
+        
+        .theory-text { font-size: 0.95rem; line-height: 1.6; }
+        .theory-text h5 { color: #00ffcc; margin-top: 20px; }
+    </style>
+</head>
+<body>
+    <div class="mb-3">
+        <a href="/menu" style="color: #00ffcc; text-decoration: none; font-weight: bold;">← В меню</a>
+    </div>
+
+    <div class="row">
+        <!-- Левая колонка: Теория -->
+        <div class="col-md-5 mb-4">
+            <div class="cyber-card theory-block theory-text" style="overflow-y: auto; max-height: 85vh;">
+                <h3>Теория: Информационное Право</h3>
+                <p>Материал на базе учебника К.Ю. Полякова (10 класс, углубленный уровень), дополненный примерами из мировой практики.</p>
+                <hr style="border-color: #444;">
+                
+                <h5>1. Авторское право на ПО (ГК РФ и Мировая практика)</h5>
+                <p>Программы для ЭВМ охраняются законом как <strong>литературные произведения</strong>. Авторское право возникает автоматически в момент создания кода (регистрация в Роспатенте добровольна). Идеи, жанры игр, механики, алгоритмы и языки программирования не защищаются.</p>
+                <ul>
+                    <li><strong>Ст. 1259 ГК РФ:</strong> Закон <strong>не защищает</strong> идеи, концепции, алгоритмы, языки программирования. <em>Перевод</em> программы на другой язык (ее локализация) — это создание производного произведения, требующее согласия автора!</li>
+                    <li><strong>Ст. 1261 ГК РФ:</strong> Охраняется исходный и объектный (скомпилированный) код. Декомпиляция (взлом и изучение кода) без разрешения запрещена, если это прямо указано в договоре.</li>
+                    <li><strong>Ст. 1295 ГК РФ (Служебное произведение):</strong> Если код написан на работе по заданию, исключительное право принадлежит компании. Если сотрудник написал код дома в нерабочее время — права принадлежат сотруднику.</li>
+                    <li><strong>Использование в школах:</strong> Образовательные некоммерческие цели <strong>не дают</strong> права незаконно тиражировать платное ПО (например, ставить 1 лицензию на 20 компьютеров).</li>
+                </ul>
+
+                <h5>2. Основные статьи Законодательства РФ в сфере ПО</h5>
+                <ul>
+                    <li><strong>Ст. 1259 ГК РФ (Объекты авторских прав):</strong> Программы для ЭВМ охраняются как <em>литературные произведения</em>.</li>
+                    <li><strong>Ст. 1261 ГК РФ (Программы для ЭВМ):</strong> Охраняется код.</li>
+                    <li><strong>Ст. 1295 ГК РФ (Служебное произведение):</strong> Имущественное право у компании-работодателя.</li>
+                    <li><strong>Ст. 146 УК РФ (Нарушение авторских прав):</strong> Компьютерное пиратство в крупном размере (ущерб свыше 100 тыс. руб.) влечет уголовную ответственность до 6 лет.</li>
+                    <li><strong>Ст. 272 и 273 УК РФ (Киберпреступления):</strong> Жестко наказывается хакерство, создание и распространение вирусов и программ-взломщиков (кряков).</li>
+                </ul>
+
+                <h5>3. Типы лицензий на программы</h5>
+                <ul>
+                    <li><strong>Проприетарное / Коммерческое ПО:</strong> Исходный код закрыт, использование платное. <br><em>Пример:</em> Adobe Photoshop, MS Office. Корпоративные ключи из интернета — это пиратство. 1 лицензия = 1 ПК.</li>
+                    <li><strong>Shareware (Условно-бесплатное):</strong> Бесплатно на пробный период (trial). <br><em>Пример:</em> WinRAR, Total Commander, Sublime Text. Надписи 'Unregistered' или просьбы нажать кнопку при запуске означают, что пробный период истек, и использование программы без покупки незаконно (Nagware).</li>
+                    <li><strong>Студенческие лицензии (Educational):</strong> Бесплатно, но <strong>строго запрещают</strong> коммерческое использование.</li>
+                    <li><strong>Freeware:</strong> Бесплатно навсегда, но код закрыт (Skype, PDF-ридеры).</li>
+                    <li><strong>Свободное ПО (Open Source):</strong> Код открыт, коммерческое использование разрешено (Linux, Blender).
+                        <ul>
+                            <li><em>Лицензия GNU GPL (Копилефт):</em> Если вы используете GPL-код, вы <strong>обязаны</strong> открыть свой исходный код.</li>
+                            <li><em>Лицензия MIT / Apache:</em> Разрешают использовать открытый код внутри ваших <strong>закрытых коммерческих</strong> программ.</li>
+                        </ul>
+                    </li>
+                </ul>
+
+                <h5>4. Защита персональных данных (152-ФЗ)</h5>
+                <p>Любая информация, относящаяся к человеку, подлежит строгой защите:</p>
+                <ul>
+                    <li><strong>Согласие:</strong> Должно быть активным. Предустановленные галочки (opt-out) запрещены. Передача данных третьим лицам требует явного согласия.</li>
+                    <li><strong>Принцип целеполагания:</strong> Собираемые данные должны строго соответствовать цели! Приложению-фонарику не нужен GPS, а фитнес-клубу не нужна медкарта (это избыточные данные). А вот такси геолокация нужна.</li>
+                    <li><strong>Биометрия:</strong> Требует строго <strong>письменного</strong> согласия. Нельзя ставить биометрические турникеты без альтернативы прохода.</li>
+                    <li><strong>Исключения без согласия:</strong> 1) Экстренная медицинская помощь. 2) Исполнение закона (банки обязаны брать паспорт по закону).</li>
+                    <li><strong>Парсинг:</strong> Сбор резюме из открытых источников и их публикация у себя — все равно требует правового основания.</li>
+                    <li><strong>Локализация:</strong> Базы данных россиян обязаны храниться на серверах в РФ.</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Правая колонка: Практика (Вкладки) -->
+        <div class="col-md-7">
+            <div class="cyber-card">
+                <ul class="nav nav-tabs" id="lessonTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="lvl1-tab" data-bs-toggle="tab" data-bs-target="#lvl1" type="button" role="tab">Ур. 1: Заявки (Лицензии)</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="lvl2-tab" data-bs-toggle="tab" data-bs-target="#lvl2" type="button" role="tab">Ур. 2: Суд (ГК РФ)</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="lvl3-tab" data-bs-toggle="tab" data-bs-target="#lvl3" type="button" role="tab">Ур. 3: Роскомнадзор (152-ФЗ)</button>
+                    </li>
+                </ul>
+                
+                <div class="tab-content mt-4" id="lessonTabsContent">
+                    
+                    <!-- УРОВЕНЬ 1 -->
+                    <div class="tab-pane fade show active" id="lvl1" role="tabpanel">
+                        <h4>Входящие заявки (Осталось: <span id="l1-remain">3</span>)</h4>
+                        <div class="progress-bar-custom">
+                            <div class="progress-fill" id="l1-progress" style="width: 0%;"></div>
+                        </div>
+                        <div id="l1-content">
+                            <p><em>Легенда:</em> Рассмотрите заявки от отделов вашей компании на использование ПО и вынесите резолюцию.</p>
+                            
+                            <div class="doc-paper" id="l1-doc">Загрузка документа...</div>
+                            
+                            <div class="hint-box" id="l1-hint"></div>
+                            
+                            <div id="l1-buttons">
+                                <button class="btn-custom" onclick="checkL1('Shareware')">Shareware</button>
+                                <button class="btn-custom" onclick="checkL1('Freeware')">Freeware</button>
+                                <button class="btn-custom" onclick="checkL1('Open Source')">Open Source</button>
+                                <button class="btn-danger-custom" onclick="checkL1('Нарушение')">Отклонить (Нарушение)</button>
+                            </div>
+                        </div>
+                        <div id="l1-done" class="level-complete" style="display: none;">
+                            <h3>Уровень 1 Пройден! 🏆</h3>
+                            <button class="btn-custom mt-3" onclick="document.getElementById('lvl2-tab').click()">Перейти к Уровню 2</button>
+                        </div>
+                    </div>
+
+                    <!-- УРОВЕНЬ 2 -->
+                    <div class="tab-pane fade" id="lvl2" role="tabpanel">
+                        <h4>Судебный архив (Осталось: <span id="l2-remain">5</span>)</h4>
+                        <div class="progress-bar-custom">
+                            <div class="progress-fill" id="l2-progress" style="width: 0%;"></div>
+                        </div>
+                        <div id="l2-content">
+                            <p><em>Легенда:</em> Вы — независимый эксперт. Изучите материалы судебных дел по Части 4 ГК РФ.</p>
+                            
+                            <div class="doc-paper" id="l2-doc">Загрузка дела...</div>
+                            
+                            <div class="hint-box" id="l2-hint"></div>
+                            
+                            <div id="l2-buttons"><button class="btn-danger-custom" onclick="checkL2(true)">Признать вину (Нарушение)</button>
+                            <button class="btn-success-custom" onclick="checkL2(false)">Оправдать (Законно)</button></div>
+                        </div>
+                        <div id="l2-done" class="level-complete" style="display: none;">
+                            <h3>Уровень 2 Пройден! 🏆</h3>
+                            <button class="btn-custom mt-3" onclick="document.getElementById('lvl3-tab').click()">Перейти к Уровню 3</button>
+                        </div>
+                    </div>
+
+                    <!-- УРОВЕНЬ 3 -->
+                    <div class="tab-pane fade" id="lvl3" role="tabpanel">
+                        <h4>Аудит 152-ФЗ (Осталось: <span id="l3-remain">8</span>)</h4>
+                        <div class="progress-bar-custom">
+                            <div class="progress-fill" id="l3-progress" style="width: 0%;"></div>
+                        </div>
+                        <div id="l3-content">
+                            <p><em>Легенда:</em> Проанализируйте протоколы проверок организаций на предмет обработки ПД.</p>
+                            
+                            <div class="doc-paper" id="l3-doc">Загрузка протокола...</div>
+                            
+                            <div class="hint-box" id="l3-hint"></div>
+                            
+                            <div id="l3-buttons"><button class="btn-danger-custom" onclick="checkL3(true)">Выписать штраф (Нарушение)</button>
+                            <button class="btn-success-custom" onclick="checkL3(false)">Проверка пройдена</button></div>
+                        </div>
+                        <div id="l3-done" class="level-complete" style="display: none;">
+                            <h3>МИССИЯ УСПЕШНО ВЫПОЛНЕНА! 🏆🚀</h3>
+                            <p>Все тесты пройдены. Законодательство соблюдено!</p>
+                            <button class="btn-custom mt-3" onclick="window.location.href='/menu'">Вернуться в меню</button>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- Глобальные переменные и Телеметрия ---
+        let startTime = new Date();
+        let attemptCount = 0;
+        let actionLogs = [];
+        
+        function logAction(action, success) {
+            actionLogs.push({ time: new Date().toISOString(), input: action, success: success });
+            sendTelemetry('in_progress');
+        }
+        
+        function sendTelemetry(status = 'completed') {
+            const timeSpent = Math.floor((new Date() - startTime) / 1000);
+            fetch('/telemetry', {
+                method: 'POST', headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    mission_name: 'Право и Законодательство (10кл)',
+                    start_time: startTime.toISOString(),
+                    time_spent_sec: timeSpent,
+                    attempts_count: attemptCount,
+                    success: (l1Correct >= l1Target && l2Correct >= l2Target && l3Correct >= l3Target),
+                    action_log: JSON.stringify(actionLogs),
+                    status: status
+                })
+            });
+        }
+        
+        function checkGlobalCompletion() {
+            if (l1Correct >= l1Target && l2Correct >= l2Target && l3Correct >= l3Target) {
+                sendTelemetry('completed');
+            }
+        }
+        
+        function shuffleButtons(containerId) {
+            let container = document.getElementById(containerId);
+            if (!container) return;
+            for (let i = container.children.length; i >= 0; i--) {
+                container.appendChild(container.children[Math.random() * i | 0]);
+            }
+        }
+
+        // --- УРОВЕНЬ 1 ---
+        let l1Target = 3;
+        let l1Correct = 0;
+        let l1State = null;
+        let l1Processing = false;
+
+        async function loadL1() {
+            let res = await fetch('/api/law_task', {
+                method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({level: 1})
+            });
+            let newState = await res.json();
+            // Защита от дублей подряд
+            while (l1State && l1State.desc === newState.desc) {
+                res = await fetch('/api/law_task', {
+                    method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({level: 1})
+                });
+                newState = await res.json();
+            }
+            l1State = newState;
+            
+            let html = `<div class="doc-header">${l1State.doc_type}</div>`;
+            html += `<div class="doc-field"><strong>Отдел:</strong> ${l1State.department}</div>`;
+            html += `<div class="doc-field"><strong>ПО:</strong> ${l1State.software}</div>`;
+            html += `<div class="doc-field"><strong>Обоснование:</strong><br> ${l1State.desc}</div>`;
+            
+            document.getElementById('l1-doc').innerHTML = html;
+            document.getElementById('l1-hint').style.display = 'none';
+            document.getElementById('l1-hint').classList.remove('hint-success', 'hint-error');
+            
+            shuffleButtons('l1-buttons');
+            l1Processing = false;
+        }
+
+        function checkL1(userAns) {
+            if (l1Processing) return;
+            l1Processing = true;
+            attemptCount++;
+            let isCorrect = (userAns === l1State.ans);
+            logAction(`L1: user=${userAns}, actual=${l1State.ans}`, isCorrect);
+            
+            let hint = document.getElementById('l1-hint');
+            if (isCorrect) {
+                l1Correct++;
+                document.getElementById('l1-remain').innerText = l1Target - l1Correct;
+                document.getElementById('l1-progress').style.width = `${(l1Correct/l1Target)*100}%`;
+                
+                hint.innerHTML = `<strong>Верно!</strong> Заявка обработана правильно.`;
+                hint.style.background = 'rgba(0, 184, 148, 0.2)';
+                hint.style.borderLeftColor = '#00b894';
+                hint.style.display = 'block';
+                
+                if (l1Correct >= l1Target) {
+                    setTimeout(() => {
+                        document.getElementById('l1-content').style.display = 'none';
+                        document.getElementById('l1-done').style.display = 'block';
+                        checkGlobalCompletion();
+                    }, 1000);
+                } else {
+                    setTimeout(() => loadL1(), 1500); // Задержка для защиты от кликера
+                }
+            } else {
+                hint.innerHTML = `<strong>Неверная резолюция!</strong><br>` + l1State.hint;
+                hint.style.background = 'rgba(255, 68, 68, 0.2)';
+                hint.style.borderLeftColor = '#ff4444';
+                hint.style.display = 'block';
+                setTimeout(() => loadL1(), 4000);
+            }
+        }
+        loadL1();
+
+        // --- УРОВЕНЬ 2 ---
+        let l2Target = 5;
+        let l2Correct = 0;
+        let l2State = null;
+        let l2Processing = false;
+
+        async function loadL2() {
+            let res = await fetch('/api/law_task', {
+                method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({level: 2})
+            });
+            let newState = await res.json();
+            while (l2State && l2State.essence === newState.essence) {
+                res = await fetch('/api/law_task', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({level: 2}) });
+                newState = await res.json();
+            }
+            l2State = newState;
+            
+            let html = `<div class="doc-header">${l2State.doc_type}</div>`;
+            html += `<div class="doc-field"><strong>Истец:</strong> ${l2State.plaintiff}</div>`;
+            html += `<div class="doc-field"><strong>Ответчик:</strong> ${l2State.defendant}</div>`;
+            html += `<div class="doc-field"><strong>Суть иска:</strong><br> ${l2State.essence}</div>`;
+            
+            document.getElementById('l2-doc').innerHTML = html;
+            document.getElementById('l2-hint').style.display = 'none';
+            shuffleButtons('l2-buttons');
+            l2Processing = false;
+        }
+
+        function checkL2(userAns) {
+            if (l2Processing) return;
+            l2Processing = true;
+            attemptCount++;
+            let isCorrect = (userAns === l2State.is_violation);
+            logAction(`L2: user=${userAns}, actual=${l2State.is_violation}`, isCorrect);
+            
+            let hint = document.getElementById('l2-hint');
+            if (isCorrect) {
+                l2Correct++;
+                document.getElementById('l2-remain').innerText = l2Target - l2Correct;
+                document.getElementById('l2-progress').style.width = `${(l2Correct/l2Target)*100}%`;
+                
+                hint.innerHTML = `<strong>Верно!</strong> Вердикт вынесен корректно.`;
+                hint.style.background = 'rgba(0, 184, 148, 0.2)';
+                hint.style.borderLeftColor = '#00b894';
+                hint.style.display = 'block';
+                
+                if (l2Correct >= l2Target) {
+                    setTimeout(() => {
+                        document.getElementById('l2-content').style.display = 'none';
+                        document.getElementById('l2-done').style.display = 'block';
+                        checkGlobalCompletion();
+                    }, 1000);
+                } else {
+                    setTimeout(() => loadL2(), 1500);
+                }
+            } else {
+                hint.innerHTML = `<strong>Апелляция отменена!</strong><br>` + l2State.hint;
+                hint.style.background = 'rgba(255, 68, 68, 0.2)';
+                hint.style.borderLeftColor = '#ff4444';
+                hint.style.display = 'block';
+                setTimeout(() => loadL2(), 4000);
+            }
+        }
+        loadL2();
+
+        // --- УРОВЕНЬ 3 ---
+        let l3Target = 8;
+        let l3Correct = 0;
+        let l3State = null;
+        let l3Processing = false;
+
+        async function loadL3() {
+            let res = await fetch('/api/law_task', {
+                method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({level: 3})
+            });
+            let newState = await res.json();
+            while (l3State && l3State.audit_result === newState.audit_result) {
+                res = await fetch('/api/law_task', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({level: 3}) });
+                newState = await res.json();
+            }
+            l3State = newState;
+            
+            let html = `<div class="doc-header" style="border-bottom: 2px dashed #111;">${l3State.doc_type}</div>`;
+            html += `<div class="doc-field mt-3"><strong>Объект проверки:</strong> ${l3State.target}</div>`;
+            html += `<div class="doc-field"><strong>Установлено в ходе аудита:</strong><br> ${l3State.audit_result}</div>`;
+            
+            document.getElementById('l3-doc').innerHTML = html;
+            document.getElementById('l3-hint').style.display = 'none';
+            shuffleButtons('l3-buttons');
+            l3Processing = false;
+        }
+
+        function checkL3(userAns) {
+            if (l3Processing) return;
+            l3Processing = true;
+            attemptCount++;
+            let isCorrect = (userAns === l3State.is_violation);
+            logAction(`L3: user=${userAns}, actual=${l3State.is_violation}`, isCorrect);
+            
+            let hint = document.getElementById('l3-hint');
+            if (isCorrect) {
+                l3Correct++;
+                document.getElementById('l3-remain').innerText = l3Target - l3Correct;
+                document.getElementById('l3-progress').style.width = `${(l3Correct/l3Target)*100}%`;
+                
+                hint.innerHTML = `<strong>Верно!</strong> Нарушение / соответствие закону определено точно.`;
+                hint.style.background = 'rgba(0, 184, 148, 0.2)';
+                hint.style.borderLeftColor = '#00b894';
+                hint.style.display = 'block';
+                
+                if (l3Correct >= l3Target) {
+                    setTimeout(() => {
+                        document.getElementById('l3-content').style.display = 'none';
+                        document.getElementById('l3-done').style.display = 'block';
+                        checkGlobalCompletion();
+                    }, 1000);
+                } else {
+                    setTimeout(() => loadL3(), 1500);
+                }
+            } else {
+                hint.innerHTML = `<strong>Ошибка при проверке!</strong><br>` + l3State.hint;
+                hint.style.background = 'rgba(255, 68, 68, 0.2)';
+                hint.style.borderLeftColor = '#ff4444';
+                hint.style.display = 'block';
+                setTimeout(() => loadL3(), 4000);
+            }
+        }
+        loadL3();
+    </script>
+</body>
+</html>
