@@ -137,42 +137,68 @@ def generate_law_incidents():
 def generate_network_l1_task():
     import random
     
-    devices = [
-        {"id": "inet", "name": "Интернет", "type": "internet", "x": 50, "y": 15},
-        {"id": "router", "name": "Маршрутизатор", "type": "router", "x": 50, "y": 35}
+    diff = random.randint(1, 3)
+    
+    devices_data = [
+        {"id": "inet", "name": "Интернет", "type": "internet"},
+        {"id": "fw", "name": "Firewall", "type": "firewall"},
+        {"id": "router", "name": "Шлюз", "type": "router"},
+        {"id": "core_sw", "name": "Ядро сети", "type": "switch"}
     ]
-    edges = [["inet", "router"]]
+    edges = [
+        ["inet", "fw"],
+        ["fw", "router"],
+        ["router", "core_sw"]
+    ]
     
-    num_switches = random.randint(2, 4)
-    switch_spacing = 100 / (num_switches + 1)
+    # Servers to Core
+    num_servers = 2 if diff >= 2 else 1
+    for i in range(num_servers):
+        s_id = f"srv{i}"
+        devices_data.append({"id": s_id, "name": f"Сервер БД" if i==1 else "Веб-сервер", "type": "server"})
+        edges.append(["core_sw", s_id])
+        
+    # Edge Switches
+    num_edges = 2 if diff < 3 else 3
+    for e in range(num_edges):
+        sw_id = f"esw{e}"
+        devices_data.append({"id": sw_id, "name": f"Свитч (Отд. {e+1})", "type": "switch"})
+        edges.append(["core_sw", sw_id])
+        
+        # PCs to Edge
+        for p in range(random.randint(1, 3)):
+            pc_id = f"pc_{e}_{p}"
+            devices_data.append({"id": pc_id, "name": f"ПК {e+1}-{p+1}", "type": "pc"})
+            edges.append([sw_id, pc_id])
+            
+        # Wi-Fi and Phones
+        if random.random() > 0.3 or (diff == 3 and e == 1):
+            ap_id = f"ap_{e}"
+            devices_data.append({"id": ap_id, "name": f"Wi-Fi Отд.{e+1}", "type": "wifi"})
+            edges.append([sw_id, ap_id])
+            
+            for ph in range(random.randint(1, 2)):
+                ph_id = f"ph_{e}_{ph}"
+                devices_data.append({"id": ph_id, "name": f"Смартфон {e+1}-{ph+1}", "type": "phone"})
+                edges.append([ap_id, ph_id])
+
+    # Scramble positions!
+    # Grid of 8x4 slots
+    slots = [(x * 12 + 6, y * 22 + 15) for x in range(8) for y in range(4)]
+    random.shuffle(slots)
     
-    for s in range(num_switches):
-        sw_id = f"sw{s}"
-        sx = switch_spacing * (s + 1)
-        devices.append({"id": sw_id, "name": f"Свитч {s+1}", "type": "switch", "x": sx, "y": 60})
-        edges.append(["router", sw_id])
+    devices = []
+    for i, d in enumerate(devices_data):
+        d["x"] = slots[i][0]
+        d["y"] = slots[i][1]
+        devices.append(d)
         
-        num_devices = random.randint(2, 5)
-        dev_spacing = 100 / (num_switches + 1) # distribute horizontally under the switch
-        start_x = sx - (dev_spacing / 2.5)
-        step_x = (dev_spacing * 0.8) / max(1, (num_devices - 1))
-        
-        for d in range(num_devices):
-            is_printer = (random.random() > 0.8)
-            dtype = "printer" if is_printer else "pc"
-            dname = "Принтер" if is_printer else f"ПК"
-            dx = start_x + (d * step_x)
-            
-            dev_id = f"dev_{s}_{d}"
-            devices.append({"id": dev_id, "name": dname, "type": dtype, "x": dx, "y": 85})
-            edges.append([sw_id, dev_id])
-            
     random.shuffle(devices)
     
     return {
         "devices": devices,
         "edges": edges,
-        "hint": "Провайдер подключается к Маршрутизатору. Маршрутизатор к Коммутаторам. А уже к Коммутаторам подключаются все ПК и принтеры в одной сети."
+        "hint": "Строгая иерархия: Интернет -> Firewall -> Шлюз -> Ядро сети (Свитч). К Ядру подключаются Серверы и отдельские Свитчи. К отдельским Свитчам - их ПК и Wi-Fi точки. К Wi-Fi - смартфоны."
     }
 
 def generate_network_l2_task():
