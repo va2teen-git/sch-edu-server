@@ -174,35 +174,46 @@
 
     <script>
 
-        let startTime = new Date();
-        let attemptCount = 0;
-        let actionLogs = [];
-        
-        function logAction(action, success) {
-            actionLogs.push({ time: new Date().toISOString(), input: action, success: success });
-            sendTelemetry('in_progress');
+        const startTimes = { 'Уровень 1': new Date(), 'Уровень 2': new Date(), 'Уровень 3': new Date() };
+        const attemptsCount = { 'Уровень 1': 0, 'Уровень 2': 0, 'Уровень 3': 0 };
+        const actionLogs = { 'Уровень 1': [], 'Уровень 2': [], 'Уровень 3': [] };
+
+        function logAction(task, action, success) {
+            attemptsCount[task]++;
+            actionLogs[task].push({ time: new Date().toISOString(), input: action, success: success });
+            sendTelemetry(task, 'in_progress');
         }
-        
-        function sendTelemetry(status = 'completed') {
-            const timeSpent = Math.floor((new Date() - startTime) / 1000);
+
+        function sendTelemetry(task, status = 'completed') {
+            const timeSpent = Math.floor((new Date() - startTimes[task]) / 1000);
+            
+            let isTaskSuccess = false;
+            if (task === 'Уровень 1') isTaskSuccess = (l1Correct >= l1Target);
+            if (task === 'Уровень 2') isTaskSuccess = (l2Correct >= l2Target);
+            if (task === 'Уровень 3') isTaskSuccess = (l3Correct >= l3Target);
+
             fetch('/telemetry', {
                 method: 'POST', headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({
-                    mission_name: 'Сети и Протоколы (10кл)',
-                    start_time: startTime.toISOString(),
+                    mission_name: 'Сети и Протоколы (10кл) :: ' + task,
+                    start_time: startTimes[task].toISOString(),
                     time_spent_sec: timeSpent,
-                    attempts_count: attemptCount,
-                    success: (l1Correct >= l1Target && l2Correct >= l2Target && l3Correct >= l3Target),
-                    action_log: JSON.stringify(actionLogs),
+                    attempts_count: attemptsCount[task],
+                    success: isTaskSuccess,
+                    action_log: JSON.stringify(actionLogs[task]),
                     status: status
                 })
             });
+            
+            if (status === 'completed') {
+                startTimes[task] = new Date();
+                attemptsCount[task] = 0;
+                actionLogs[task] = [];
+            }
         }
         
         function checkGlobalCompletion() {
-            if (l1Correct >= l1Target && l2Correct >= l2Target && l3Correct >= l3Target) {
-                sendTelemetry('completed');
-            }
+            // Can be left empty since each task manages its own completion
         }
 
         // --- УРОВЕНЬ 1 ---
@@ -429,7 +440,7 @@
             const user = userEdges.map(e => [e[0], e[1]].sort().join("-")).sort();
             
             let isCorrect = JSON.stringify(expected) === JSON.stringify(user);
-            logAction(`L1_Builder: result=${isCorrect}`, isCorrect);
+            logAction("Уровень 1", `L1_Builder: result=${isCorrect}`, isCorrect);
             
             let hint = document.getElementById('l1-hint');
             if (isCorrect) {
@@ -437,7 +448,7 @@
                 document.getElementById('l1-progress').style.width = `${(l1Correct/l1Target)*100}%`;
                 hint.innerHTML = `<strong>Верно!</strong> Сеть функционирует.`; hint.style.borderLeftColor = '#228b22'; hint.style.background = 'rgba(34, 139, 34, 0.2)'; hint.style.display = 'block';
                 if (l1Correct >= l1Target) { 
-                    setTimeout(() => { document.getElementById('l1-content').style.display = 'none'; document.getElementById('l1-done').style.display = 'block'; checkGlobalCompletion(); }, 1000); 
+                    setTimeout(() => { document.getElementById('l1-content').style.display = 'none'; document.getElementById('l1-done').style.display = 'block'; sendTelemetry('Уровень 1', 'completed'); checkGlobalCompletion(); }, 1000); 
                 } else { 
                     setTimeout(() => loadL1(), 1500); 
                 }
@@ -501,13 +512,13 @@
             if (l2Processing) return;
             l2Processing = true; attemptCount++;
             let isCorrect = (userAns === l2State.ans);
-            logAction(`L2: user=${userAns}, actual=${l2State.ans}`, isCorrect);
+            logAction("Уровень 2", `L2: user=${userAns}, actual=${l2State.ans}`, isCorrect);
             let hint = document.getElementById('l2-hint');
             if (isCorrect) {
                 l2Correct++; saveProgress(); document.getElementById('l2-remain').innerText = l2Target - l2Correct;
                 document.getElementById('l2-progress').style.width = `${(l2Correct/l2Target)*100}%`;
                 hint.innerHTML = `<strong>Верно!</strong>`; hint.style.borderLeftColor = '#228b22'; hint.style.background = 'rgba(34, 139, 34, 0.2)'; hint.style.display = 'block';
-                if (l2Correct >= l2Target) { setTimeout(() => { document.getElementById('l2-content').style.display = 'none'; document.getElementById('l2-done').style.display = 'block'; checkGlobalCompletion(); }, 1000); } else { setTimeout(() => loadL2(), 1000); }
+                if (l2Correct >= l2Target) { setTimeout(() => { document.getElementById('l2-content').style.display = 'none'; document.getElementById('l2-done').style.display = 'block'; sendTelemetry('Уровень 2', 'completed'); checkGlobalCompletion(); }, 1000); } else { setTimeout(() => loadL2(), 1000); }
             } else {
                 hint.innerHTML = `<strong>Ошибка!</strong><br>` + l2State.hint; hint.style.borderLeftColor = '#e94560'; hint.style.background = 'rgba(233, 69, 96, 0.2)'; hint.style.display = 'block';
                 setTimeout(() => loadL2(), 3000);
@@ -621,7 +632,7 @@
             if (l3Processing) return;
             l3Processing = true; attemptCount++;
             let userAns = document.getElementById('l3-answer').value.trim();
-            logAction(`L3_Term: user=${userAns}, actual=${l3State.ans}`, userAns === l3State.ans);
+            logAction("Уровень 3", `L3_Term: user=${userAns}, actual=${l3State.ans}`, userAns === l3State.ans);
             let hint = document.getElementById('l3-hint');
             
             if (userAns === l3State.ans) {
@@ -629,7 +640,7 @@
                 document.getElementById('l3-progress').style.width = `${(l3Correct/l3Target)*100}%`;
                 hint.innerHTML = `<strong>Верно!</strong> Правильный ответ: ${l3State.ans}.`; hint.style.borderLeftColor = '#228b22'; hint.style.background = 'rgba(34, 139, 34, 0.2)'; hint.style.display = 'block';
                 if (l3Correct >= l3Target) { 
-                    setTimeout(() => { document.getElementById('l3-content').style.display = 'none'; document.getElementById('l3-done').style.display = 'block'; checkGlobalCompletion(); }, 2000); 
+                    setTimeout(() => { document.getElementById('l3-content').style.display = 'none'; document.getElementById('l3-done').style.display = 'block'; sendTelemetry('Уровень 3', 'completed'); checkGlobalCompletion(); }, 2000); 
                 } else { 
                     setTimeout(() => loadL3(), 2000); 
                 }

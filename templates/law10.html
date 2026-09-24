@@ -289,7 +289,7 @@
             l1Processing = true;
             attemptCount++;
             let isCorrect = (userAns === l1State.ans);
-            logAction(`L1: user=${userAns}, actual=${l1State.ans}`, isCorrect);
+            logAction("Уровень 1", `L1: user=${userAns}, actual=${l1State.ans}`, isCorrect);
             
             let hint = document.getElementById('l1-hint');
             if (isCorrect) {
@@ -306,7 +306,7 @@
                     setTimeout(() => {
                         document.getElementById('l1-content').style.display = 'none';
                         document.getElementById('l1-done').style.display = 'block';
-                        checkGlobalCompletion();
+                        sendTelemetry('Уровень 1', 'completed');
                     }, 1000);
                 } else {
                     setTimeout(() => loadL1(), 1500); // Задержка для защиты от кликера
@@ -354,7 +354,7 @@
             l2Processing = true;
             attemptCount++;
             let isCorrect = (userAns === l2State.is_violation);
-            logAction(`L2: user=${userAns}, actual=${l2State.is_violation}`, isCorrect);
+            logAction("Уровень 2", `L2: user=${userAns}, actual=${l2State.is_violation}`, isCorrect);
             
             let hint = document.getElementById('l2-hint');
             if (isCorrect) {
@@ -371,7 +371,7 @@
                     setTimeout(() => {
                         document.getElementById('l2-content').style.display = 'none';
                         document.getElementById('l2-done').style.display = 'block';
-                        checkGlobalCompletion();
+                        sendTelemetry('Уровень 2', 'completed');
                     }, 1000);
                 } else {
                     setTimeout(() => loadL2(), 1500);
@@ -418,7 +418,7 @@
             l3Processing = true;
             attemptCount++;
             let isCorrect = (userAns === l3State.is_violation);
-            logAction(`L3: user=${userAns}, actual=${l3State.is_violation}`, isCorrect);
+            logAction("Уровень 3", `L3: user=${userAns}, actual=${l3State.is_violation}`, isCorrect);
             
             let hint = document.getElementById('l3-hint');
             if (isCorrect) {
@@ -435,7 +435,7 @@
                     setTimeout(() => {
                         document.getElementById('l3-content').style.display = 'none';
                         document.getElementById('l3-done').style.display = 'block';
-                        checkGlobalCompletion();
+                        sendTelemetry('Уровень 3', 'completed');
                     }, 1000);
                 } else {
                     setTimeout(() => loadL3(), 1500);
