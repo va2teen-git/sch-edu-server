@@ -1,6 +1,7 @@
 import sys
 import os
 from flask import Flask, render_template, request, redirect, session, jsonify
+from logic import generate_network_l1_task, generate_network_l2_task
 from flask_sqlalchemy import SQLAlchemy
 from flask_session import Session
 from sqlalchemy import event
