@@ -68,24 +68,16 @@
 <body class="{% if hide_navbar %}modern-font{% endif %}">
     {% if not hide_navbar %}
     <button id="global-hc-btn" class="btn btn-sm" onclick="toggleGlobalHardcore()" style="position: fixed; top: 10px; left: 15px; font-size: 1.5rem; opacity: 0.3; z-index: 9999; border: none; background: transparent; padding: 0; transition: all 0.3s;" title="Режим Хардкора">💀</button>
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark border-bottom border-secondary">
-
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark border-bottom border-secondary" style="min-height: 56px;">
         <div class="container-fluid">
             <!-- Логотип удален для минимализма -->
             
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto">
-                    {% if session.get('student_name') and session.get('grade') != 'teacher' %}
-                        <li class="nav-item"><a class="nav-link" href="/menu">Главное меню</a></li>
-
-                        <li class="nav-item"><a class="nav-link text-danger" href="/">Выйти ({{ session['student_name'] }})</a></li>
-                    {% elif session.get('grade') == 'teacher' %}
-                        <li class="nav-item"><a class="nav-link text-danger" href="/">Выйти из панели</a></li>
-                    {% endif %}
-                </ul>
+            <div class="d-flex ms-auto">
+                {% if request.endpoint != 'menu' and session.get('student_name') and session.get('grade') != 'teacher' %}
+                    <a href="/menu" class="btn btn-outline-secondary border-0" title="В главное меню" style="font-size: 1.2rem;">🏠</a>
+                {% elif session.get('grade') == 'teacher' %}
+                    <a class="btn btn-outline-danger border-0" href="/">Выйти из панели</a>
+                {% endif %}
             </div>
         </div>
     </nav>

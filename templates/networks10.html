@@ -1,13 +1,7 @@
-<!DOCTYPE html>
-<html lang="ru">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Урок 13: Принципы построения сетей. BGP (10 класс)</title>
-    
-    <link href="/static/bootstrap.min.css" rel="stylesheet">
-    <script src="/static/bootstrap.bundle.min.js"></script>
-    <style>
+{% extends "layout.html" %}
+{% block content %}
+<style>
+
         * { border-radius: 0 !important; }
         body { background: #1a1a2e; color: #eee; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 20px; }
         .cyber-card { background: #16213e; padding: 25px; box-shadow: 0 8px 16px rgba(0,0,0,0.5); border: 1px solid #0f3460; height: 100%; }
@@ -32,12 +26,10 @@
         .theory-text { font-size: 0.95rem; line-height: 1.6; }
         .theory-text h5 { color: #e94560; margin-top: 20px; }
         
-        </style>
-</head>
-<body>
-    <div class="mb-3">
-        <a href="/menu" style="color: #e94560; text-decoration: none; font-weight: bold;">← В меню</a>
-    </div>
+        
+</style>
+
+    
 
     <div class="row">
         <!-- Левая колонка: Теория -->
@@ -650,5 +642,5 @@
 
     </script>
 
-</body>
-</html>
+
+{% endblock %}
