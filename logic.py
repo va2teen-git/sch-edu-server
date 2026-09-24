@@ -137,47 +137,42 @@ def generate_law_incidents():
 def generate_network_l1_task():
     import random
     
-    difficulty = random.randint(1, 3)
-    
     devices = [
-        {"id": "inet", "name": "Провайдер", "type": "internet", "x": 50, "y": 15},
-        {"id": "router", "name": "Маршрутизатор", "type": "router", "x": 50, "y": 40}
+        {"id": "inet", "name": "Интернет", "type": "internet", "x": 50, "y": 15},
+        {"id": "router", "name": "Маршрутизатор", "type": "router", "x": 50, "y": 35}
     ]
     edges = [["inet", "router"]]
     
-    if difficulty <= 2:
-        devices.append({"id": "sw1", "name": "Коммутатор", "type": "switch", "x": 50, "y": 65})
-        edges.append(["router", "sw1"])
+    num_switches = random.randint(2, 4)
+    switch_spacing = 100 / (num_switches + 1)
+    
+    for s in range(num_switches):
+        sw_id = f"sw{s}"
+        sx = switch_spacing * (s + 1)
+        devices.append({"id": sw_id, "name": f"Свитч {s+1}", "type": "switch", "x": sx, "y": 60})
+        edges.append(["router", sw_id])
         
-        num_pcs = random.randint(2, 4)
-        for i in range(num_pcs):
-            devices.append({"id": f"pc{i}", "name": f"ПК {i+1}", "type": "pc", "x": 20 + i*20, "y": 150})
-            edges.append(["sw1", f"pc{i}"])
+        num_devices = random.randint(2, 5)
+        dev_spacing = 100 / (num_switches + 1) # distribute horizontally under the switch
+        start_x = sx - (dev_spacing / 2.5)
+        step_x = (dev_spacing * 0.8) / max(1, (num_devices - 1))
+        
+        for d in range(num_devices):
+            is_printer = (random.random() > 0.8)
+            dtype = "printer" if is_printer else "pc"
+            dname = "Принтер" if is_printer else f"ПК"
+            dx = start_x + (d * step_x)
             
-        if difficulty == 2:
-            devices.append({"id": "pr1", "name": "Принтер", "type": "printer", "x": 80, "y": 150})
-            edges.append(["sw1", "pr1"])
+            dev_id = f"dev_{s}_{d}"
+            devices.append({"id": dev_id, "name": dname, "type": dtype, "x": dx, "y": 85})
+            edges.append([sw_id, dev_id])
             
-    else:
-        devices.append({"id": "sw1", "name": "Коммутатор 1", "type": "switch", "x": 25, "y": 65})
-        devices.append({"id": "sw2", "name": "Коммутатор 2", "type": "switch", "x": 75, "y": 65})
-        edges.append(["router", "sw1"])
-        edges.append(["router", "sw2"])
-        
-        devices.append({"id": "pc1", "name": "ПК 1", "type": "pc", "x": 15, "y": 150})
-        devices.append({"id": "pc2", "name": "ПК 2", "type": "pc", "x": 35, "y": 150})
-        edges.append(["sw1", "pc1"])
-        edges.append(["sw1", "pc2"])
-        
-        devices.append({"id": "pc3", "name": "ПК 3", "type": "pc", "x": 75, "y": 150})
-        edges.append(["sw2", "pc3"])
-        
     random.shuffle(devices)
     
     return {
         "devices": devices,
         "edges": edges,
-        "hint": "Провайдер подключается к Маршрутизатору. Маршрутизатор к Коммутатору. А уже к Коммутатору подключаются все ПК и принтеры в одной сети."
+        "hint": "Провайдер подключается к Маршрутизатору. Маршрутизатор к Коммутаторам. А уже к Коммутаторам подключаются все ПК и принтеры в одной сети."
     }
 
 def generate_network_l2_task():

@@ -259,37 +259,52 @@
             });
             
             // Рисуем узлы (устройства)
+            const typeEmojis = {
+                'internet': '☁️',
+                'router': '🚦',
+                'switch': '🎛️',
+                'pc': '💻',
+                'printer': '🖨️'
+            };
+            
             l1State.devices.forEach(d => {
                 const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
                 g.style.cursor = "pointer";
                 
                 const cx = (d.x / 100) * W;
                 const cy = (d.y / 100) * H;
-                const boxW = 120;
-                const boxH = 40;
+                const boxSize = 40;
                 
                 const rect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
-                rect.setAttribute("x", cx - boxW/2);
-                rect.setAttribute("y", cy - boxH/2);
-                rect.setAttribute("width", boxW);
-                rect.setAttribute("height", boxH);
+                rect.setAttribute("x", cx - boxSize/2);
+                rect.setAttribute("y", cy - boxSize/2);
+                rect.setAttribute("width", boxSize);
+                rect.setAttribute("height", boxSize);
                 rect.setAttribute("fill", currentSelection === d.id ? "#e94560" : "#0f3460");
                 rect.setAttribute("stroke", "#00ffcc");
                 rect.setAttribute("stroke-width", "2");
                 
-                const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
-                text.setAttribute("x", cx);
-                text.setAttribute("y", cy);
-                text.setAttribute("text-anchor", "middle");
-                text.setAttribute("dominant-baseline", "middle");
-                text.setAttribute("fill", "#fff");
-                text.setAttribute("font-size", "14px");
-                text.setAttribute("font-weight", "bold");
-                text.setAttribute("font-family", "sans-serif");
-                text.textContent = d.name;
+                const emoji = document.createElementNS("http://www.w3.org/2000/svg", "text");
+                emoji.setAttribute("x", cx);
+                // Adjust Y slightly for better emoji vertical centering in SVG
+                emoji.setAttribute("y", cy + 2);
+                emoji.setAttribute("text-anchor", "middle");
+                emoji.setAttribute("dominant-baseline", "middle");
+                emoji.setAttribute("font-size", "22px");
+                emoji.textContent = typeEmojis[d.type] || '❓';
+                
+                const label = document.createElementNS("http://www.w3.org/2000/svg", "text");
+                label.setAttribute("x", cx);
+                label.setAttribute("y", cy + boxSize/2 + 12);
+                label.setAttribute("text-anchor", "middle");
+                label.setAttribute("fill", "#00ffcc");
+                label.setAttribute("font-size", "11px");
+                label.setAttribute("font-family", "sans-serif");
+                label.textContent = d.name;
                 
                 g.appendChild(rect);
-                g.appendChild(text);
+                g.appendChild(emoji);
+                g.appendChild(label);
                 
                 g.onclick = () => handleDeviceClick(d.id);
                 svg.appendChild(g);
