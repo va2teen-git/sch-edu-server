@@ -52,32 +52,48 @@
         <!-- Левая колонка: Теория -->
         <div class="col-md-5 mb-4">
             <div class="cyber-card theory-text" style="overflow-y: auto; max-height: 85vh;">
-                <h3>Теория: Компьютерные сети</h3>
-                <p>Основы построения сетей и маршрутизации. Углубленный уровень (10 класс).</p>
+                <h3>Принципы построения сетей</h3>
+                <p>Основы и классификация (10 класс).</p>
                 <hr style="border-color: #0f3460;">
                 
-                <h5>1. Аппаратные компоненты</h5>
+                <h5>1. Понятие компьютерной сети и роли компьютеров</h5>
+                <p>Компьютерная сеть — это группа из двух и более компьютеров, соединенных каналами передачи данных. Сети обеспечивают обмен данными, совместное использование ресурсов, ПО и баз данных, совместную работу и удаленное управление.</p>
+                <p>В зависимости от выполняемых функций различают:</p>
                 <ul>
-                    <li><strong>Маршрутизатор (Router):</strong> Устройство сетевого уровня. Соединяет разные сети (например, LAN и Интернет). Принимает решения о пути (маршрутизирует) пакета на основе IP-адресов.</li>
-                    <li><strong>Коммутатор (Switch):</strong> Устройство канального уровня. Соединяет узлы внутри одной сети (LAN). Передает кадры только нужному порту на основе MAC-адреса.</li>
-                    <li><strong>Концентратор (Hub):</strong> Устаревший "повторитель". Тупо копирует сигнал на все порты. Создает огромный трафик и коллизии.</li>
+                    <li><strong>Сервер</strong> — предоставляет доступ к ресурсам или управляет ими.</li>
+                    <li><strong>Клиент</strong> (рабочая станция) — использует ресурсы сервера.</li>
                 </ul>
 
-                <h5>2. Топологии сетей</h5>
+                <h5>2. Классификация компьютерных сетей</h5>
+                <p>По архитектуре:</p>
                 <ul>
-                    <li><strong>Звезда:</strong> Все устройства подключены к центральному узлу (коммутатору). Самая надежная и популярная сегодня топология.</li>
-                    <li><strong>Шина:</strong> Единый кабель, к которому подключены все ПК. Обрыв кабеля = падение всей сети.</li>
-                    <li><strong>Кольцо:</strong> Узлы соединены последовательно, пакет передается по кругу.</li>
+                    <li><strong>Одноранговые сети</strong> — все компьютеры имеют равные права.</li>
+                    <li><strong>Сети с выделенным сервером</strong> — есть центр. Минус: выход сервера из строя валит сеть.</li>
+                </ul>
+                <p>По территориальной распространенности:</p>
+                <ul>
+                    <li><strong>BAN</strong> (Body) — нательные сети (до 1 м).</li>
+                    <li><strong>PAN</strong> (Personal) — персональные сети (до 10 м).</li>
+                    <li><strong>LAN</strong> (Local) — локальные сети.</li>
+                    <li><strong>CAN</strong> (Campus) — кампусные сети (группа зданий).</li>
+                    <li><strong>MAN</strong> (Metropolitan) — городские сети.</li>
+                    <li><strong>WAN</strong> (Wide) — глобальные сети.</li>
                 </ul>
 
-                <h5>3. IP-адресация и Маски</h5>
-                <p><strong>IPv4-адрес</strong> — это 32-битное число (4 байта, например 192.168.1.5).<br>
-                <strong>Маска подсети</strong> показывает, какая часть IP-адреса относится к сети, а какая — к узлу в этой сети.<br>
-                <em>Пример:</em> IP 192.168.1.5, Маска 255.255.255.0. Это значит, что "192.168.1" — это адрес сети, а "5" — адрес ПК. Если этот ПК хочет отправить пакет на 192.168.1.10 — это та же сеть (отправляется напрямую через коммутатор). Если на 192.168.2.10 — сеть другая, пакет уходит на маршрутизатор (Шлюз по умолчанию).</p>
+                <h5>3. Аппаратное обеспечение</h5>
+                <ul>
+                    <li><strong>Сетевые адаптеры</strong> — устройства для сопряжения со средой.</li>
+                    <li><strong>Повторители</strong> — увеличение расстояния.</li>
+                    <li><strong>Коммутаторы, маршрутизаторы</strong> — объединение и маршрутизация.</li>
+                </ul>
 
-                <h5>4. Протокол BGP (Border Gateway Protocol)</h5>
-                <p>Главный протокол маршрутизации Интернета. Он связывает Автономные Системы (AS) — сети крупных провайдеров и корпораций.<br>
-                BGP выбирает лучший путь для трафика. Самая простая метрика в BGP — это <strong>AS-PATH</strong> (длина пути). Чем меньше Автономных Систем нужно пересечь пакету, тем маршрут лучше.</p>
+                <h5>4. Топологии сетей</h5>
+                <ul>
+                    <li><strong>Шинная</strong> — один кабель. Обрыв = падение сети.</li>
+                    <li><strong>Кольцевая</strong> — строго по кольцу.</li>
+                    <li><strong>Радиальная (звезда)</strong> — высокая надежность.</li>
+                    <li><strong>Древовидная</strong> — соединение нескольких звезд.</li>
+                </ul>
             </div>
         </div>
 
@@ -86,7 +102,7 @@
             <div class="cyber-card">
                 <ul class="nav nav-tabs" id="lessonTabs" role="tablist">
                     <li class="nav-item">
-                        <button class="nav-link active" id="lvl1-tab" data-bs-toggle="tab" data-bs-target="#lvl1" type="button">Ур. 1: Аппаратура</button>
+                        <button class="nav-link active" id="lvl1-tab" data-bs-toggle="tab" data-bs-target="#lvl1" type="button">Ур. 1: Сборка сети</button>
                     </li>
                     <li class="nav-item">
                         <button class="nav-link" id="lvl2-tab" data-bs-toggle="tab" data-bs-target="#lvl2" type="button">Ур. 2: IP-Маршруты</button>
@@ -99,20 +115,19 @@
                 <div class="tab-content mt-4">
                     <!-- УРОВЕНЬ 1 -->
                     <div class="tab-pane fade show active" id="lvl1">
-                        <h4>Распознавание оборудования (Осталось: <span id="l1-remain">3</span>)</h4>
+                        <h4>Сборка локальной сети (Осталось: <span id="l1-remain">3</span>)</h4>
                         <div class="progress-bar-custom"><div class="progress-fill" id="l1-progress"></div></div>
                         <div id="l1-content">
-                            <p><em>Легенда:</em> Вы - сисадмин. Заказчик описывает, что ему нужно. Выберите правильное устройство или топологию.</p>
-                            <div class="doc-paper" id="l1-doc">Загрузка...</div>
+                            <p><em>Задание:</em> Кликайте по устройствам, чтобы проложить кабель между ними. Постройте правильную иерархию (от провайдера к маршрутизатору, затем к коммутатору, затем к конечным устройствам). Клик по кабелю удаляет его.</p>
+                            
+                            <div style="width: 100%; height: 350px; background: #0d1b2a; border: 1px solid #00ffcc; position: relative; margin-bottom: 15px;">
+                                <svg id="network-svg" style="width: 100%; height: 100%;"></svg>
+                            </div>
+                            
                             <div class="hint-box" id="l1-hint"></div>
                             
-                            <div id="l1-buttons">
-                                <button class="btn-custom" onclick="checkL1('Маршрутизатор')">Маршрутизатор</button>
-                                <button class="btn-custom" onclick="checkL1('Коммутатор')">Коммутатор</button>
-                                <button class="btn-custom" onclick="checkL1('Концентратор')">Концентратор</button>
-                                <button class="btn-custom" onclick="checkL1('Звезда')">Топология: Звезда</button>
-                                <button class="btn-custom" onclick="checkL1('Шина')">Топология: Шина</button>
-                            </div>
+                            <button class="btn-success-custom" onclick="checkNetwork()">Проверить сеть</button>
+                            <button class="btn-custom" onclick="userEdges=[]; currentSelection=null; renderNetwork()">Сбросить кабели</button>
                         </div>
                         <div id="l1-done" class="level-complete" style="display: none;">
                             <h3>Уровень 1 Пройден! 🏆</h3>
@@ -202,27 +217,111 @@ def best_bgp_path(paths):
 
         // --- УРОВЕНЬ 1 ---
         let l1Target = 3; let l1Correct = 0; let l1State = null; let l1Processing = false;
+        let userEdges = [];
+        let currentSelection = null;
+
         async function loadL1() {
             let res = await fetch('/api/networks_task', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({level: 1}) });
             l1State = await res.json();
-            document.getElementById('l1-doc').innerHTML = l1State.desc;
+            userEdges = [];
+            currentSelection = null;
             document.getElementById('l1-hint').style.display = 'none';
             l1Processing = false;
+            renderNetwork();
         }
-        function checkL1(userAns) {
+
+        function renderNetwork() {
+            if(!l1State) return;
+            const svg = document.getElementById('network-svg');
+            svg.innerHTML = '';
+            
+            // Рисуем связи (кабели)
+            userEdges.forEach((edge, idx) => {
+                const d1 = l1State.devices.find(d => d.id === edge[0]);
+                const d2 = l1State.devices.find(d => d.id === edge[1]);
+                const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+                line.setAttribute("x1", d1.x + "%");
+                line.setAttribute("y1", d1.y + "%");
+                line.setAttribute("x2", d2.x + "%");
+                line.setAttribute("y2", d2.y + "%");
+                line.setAttribute("stroke", "#00ffcc");
+                line.setAttribute("stroke-width", "3");
+                line.style.cursor = "pointer";
+                line.onclick = () => {
+                    userEdges.splice(idx, 1);
+                    renderNetwork();
+                };
+                svg.appendChild(line);
+            });
+            
+            // Рисуем узлы (устройства)
+            l1State.devices.forEach(d => {
+                const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
+                g.style.cursor = "pointer";
+                
+                const rect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+                rect.setAttribute("x", `calc(${d.x}% - 45px)`);
+                rect.setAttribute("y", `calc(${d.y}% - 15px)`);
+                rect.setAttribute("width", "90");
+                rect.setAttribute("height", "30");
+                rect.setAttribute("fill", currentSelection === d.id ? "#e94560" : "#0f3460");
+                rect.setAttribute("stroke", "#00ffcc");
+                
+                const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
+                text.setAttribute("x", d.x + "%");
+                text.setAttribute("y", d.y + "%");
+                text.setAttribute("text-anchor", "middle");
+                text.setAttribute("dominant-baseline", "middle");
+                text.setAttribute("fill", "#fff");
+                text.setAttribute("font-size", "11px");
+                text.setAttribute("font-family", "sans-serif");
+                text.textContent = d.name;
+                
+                g.appendChild(rect);
+                g.appendChild(text);
+                
+                g.onclick = () => handleDeviceClick(d.id);
+                svg.appendChild(g);
+            });
+        }
+
+        function handleDeviceClick(id) {
+            if (l1Processing) return;
+            if (!currentSelection) {
+                currentSelection = id;
+            } else {
+                if (currentSelection !== id) {
+                    const exists = userEdges.some(e => (e[0]===id && e[1]===currentSelection) || (e[1]===id && e[0]===currentSelection));
+                    if (!exists) userEdges.push([currentSelection, id]);
+                }
+                currentSelection = null;
+            }
+            renderNetwork();
+        }
+
+        function checkNetwork() {
             if (l1Processing) return;
             l1Processing = true; attemptCount++;
-            let isCorrect = (userAns === l1State.ans);
-            logAction(`L1: user=${userAns}, actual=${l1State.ans}`, isCorrect);
+            
+            const expected = l1State.edges.map(e => [e[0], e[1]].sort().join("-")).sort();
+            const user = userEdges.map(e => [e[0], e[1]].sort().join("-")).sort();
+            
+            let isCorrect = JSON.stringify(expected) === JSON.stringify(user);
+            logAction(`L1_Builder: result=${isCorrect}`, isCorrect);
+            
             let hint = document.getElementById('l1-hint');
             if (isCorrect) {
                 l1Correct++; document.getElementById('l1-remain').innerText = l1Target - l1Correct;
                 document.getElementById('l1-progress').style.width = `${(l1Correct/l1Target)*100}%`;
-                hint.innerHTML = `<strong>Верно!</strong>`; hint.style.borderLeftColor = '#228b22'; hint.style.background = 'rgba(34, 139, 34, 0.2)'; hint.style.display = 'block';
-                if (l1Correct >= l1Target) { setTimeout(() => { document.getElementById('l1-content').style.display = 'none'; document.getElementById('l1-done').style.display = 'block'; checkGlobalCompletion(); }, 1000); } else { setTimeout(() => loadL1(), 1000); }
+                hint.innerHTML = `<strong>Верно!</strong> Сеть функционирует.`; hint.style.borderLeftColor = '#228b22'; hint.style.background = 'rgba(34, 139, 34, 0.2)'; hint.style.display = 'block';
+                if (l1Correct >= l1Target) { 
+                    setTimeout(() => { document.getElementById('l1-content').style.display = 'none'; document.getElementById('l1-done').style.display = 'block'; checkGlobalCompletion(); }, 1000); 
+                } else { 
+                    setTimeout(() => loadL1(), 1500); 
+                }
             } else {
-                hint.innerHTML = `<strong>Ошибка!</strong><br>` + l1State.hint; hint.style.borderLeftColor = '#e94560'; hint.style.background = 'rgba(233, 69, 96, 0.2)'; hint.style.display = 'block';
-                setTimeout(() => loadL1(), 3000);
+                hint.innerHTML = `<strong>Сбой сети!</strong><br>` + l1State.hint; hint.style.borderLeftColor = '#e94560'; hint.style.background = 'rgba(233, 69, 96, 0.2)'; hint.style.display = 'block';
+                setTimeout(() => { l1Processing = false; }, 2000);
             }
         }
         loadL1();
