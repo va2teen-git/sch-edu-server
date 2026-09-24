@@ -704,7 +704,17 @@ def api_law_task():
             {"doc_type": "ПРОТОКОЛ ПРОВЕРКИ № 152/32", "target": "Фитнес-клуб", "audit_result": "При покупке абонемента требуют указать национальность и вероисповедание.", "is_violation": True, "hint": "Нарушение избыточности. Эти данные не нужны для оказания фитнес-услуг."}
         ]
         return jsonify(random.choice(tasks))
-    
+
+@app.route('/lesson/grade10/networks')
+def lesson_networks():
+    if 'student_name' not in session: return redirect('/')
+    log_action(session['student_name'], "Открыл Урок 13 (10кл): Сети и Протоколы")
+    return render_template('networks10.html')
+
+@app.route('/api/networks_task', methods=['POST'])
+def api_networks_task():
+    if 'student_name' not in session: return jsonify({"error": "No session"})
+
     data = request.json
     level = data.get('level', 1)
     
