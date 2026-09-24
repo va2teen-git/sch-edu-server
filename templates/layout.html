@@ -75,7 +75,7 @@
                     {% if request.endpoint != 'menu' %}
                         <a href="/menu" class="btn btn-outline-secondary border-0 me-2" title="В главное меню" style="font-size: 1.2rem;">🏠</a>
                     {% endif %}
-                    <a href="/" class="btn btn-outline-danger btn-sm border-0" title="Выйти из аккаунта">Выйти ({{ session.get('student_name', '').split(' ')[0] }})</a>
+                    <a href="/" class="btn btn-outline-danger border-0" title="Выйти из аккаунта" style="font-size: 1.2rem;">🚪</a>
                 {% elif session.get('grade') == 'teacher' %}
                     <a class="btn btn-outline-danger border-0" href="/">Выйти из панели</a>
                 {% endif %}
