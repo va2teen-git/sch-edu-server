@@ -109,7 +109,7 @@
                         <h4>Сборка локальной сети (Осталось: <span id="l1-remain">3</span>)</h4>
                         <div class="progress-bar-custom"><div class="progress-fill" id="l1-progress"></div></div>
                         <div id="l1-content">
-                            <p><em>Задание:</em> Кликайте по устройствам, чтобы проложить кабель между ними. Постройте правильную иерархию (от провайдера к маршрутизатору, затем к коммутатору, затем к конечным устройствам). Клик по кабелю удаляет его.</p>
+                            <p><em>Задание:</em> Кликайте по устройствам, чтобы проложить кабель. Соберите корпоративную сеть! Иерархия: Интернет ➔ Firewall ➔ Шлюз ➔ Ядро сети. К Ядру подключаются Серверы и коммутаторы (Свитчи) отделов. К свитчам отделов — их ПК и Wi-Fi точки. Смартфоны — по Wi-Fi. Клик по кабелю удаляет его.</p>
                             
                             <div style="width: 100%; background: #0d1b2a; border: 1px solid #00ffcc; margin-bottom: 15px; display: flex; justify-content: center; align-items: center; padding: 10px;">
                                 <svg id="network-svg" viewBox="0 0 800 400" preserveAspectRatio="xMidYMid meet" style="width: 100%; height: auto; max-height: 400px; display: block;"></svg>
@@ -249,7 +249,8 @@
                 line.setAttribute("x2", (d2.x / 100) * W);
                 line.setAttribute("y2", (d2.y / 100) * H);
                 line.setAttribute("stroke", "#00ffcc");
-                line.setAttribute("stroke-width", "4");
+                line.setAttribute("stroke-width", "3");
+                line.setAttribute("opacity", "0.7");
                 line.style.cursor = "pointer";
                 line.onclick = () => {
                     userEdges.splice(idx, 1);
@@ -261,9 +262,13 @@
             // Рисуем узлы (устройства)
             const typeEmojis = {
                 'internet': '☁️',
-                'router': '🚦',
+                'firewall': '🧱',
+                'router': '🔀',
                 'switch': '🎛️',
+                'server': '🗄️',
                 'pc': '💻',
+                'wifi': '📡',
+                'phone': '📱',
                 'printer': '🖨️'
             };
             
@@ -298,7 +303,7 @@
                 label.setAttribute("y", cy + boxSize/2 + 12);
                 label.setAttribute("text-anchor", "middle");
                 label.setAttribute("fill", "#00ffcc");
-                label.setAttribute("font-size", "11px");
+                label.setAttribute("font-size", "10px");
                 label.setAttribute("font-family", "sans-serif");
                 label.textContent = d.name;
                 
