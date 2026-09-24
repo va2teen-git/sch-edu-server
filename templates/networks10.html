@@ -7,14 +7,6 @@
     
     <link href="/static/bootstrap.min.css" rel="stylesheet">
     <script src="/static/bootstrap.bundle.min.js"></script>
-    <script src="/static/pyodide/pyodide.js"></script>
-    
-    <!-- CodeMirror -->
-    <link rel="stylesheet" href="/static/codemirror/codemirror.min.css">
-    <link rel="stylesheet" href="/static/codemirror/dracula.min.css">
-    <script src="/static/codemirror/codemirror.min.js"></script>
-    <script src="/static/codemirror/python.min.js"></script>
-
     <style>
         * { border-radius: 0 !important; }
         body { background: #1a1a2e; color: #eee; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 20px; }
@@ -40,8 +32,7 @@
         .theory-text { font-size: 0.95rem; line-height: 1.6; }
         .theory-text h5 { color: #e94560; margin-top: 20px; }
         
-        .CodeMirror { height: 250px; font-size: 14px; border: 1px solid #0f3460; margin-bottom: 15px;}
-    </style>
+        </style>
 </head>
 <body>
     <div class="mb-3">
@@ -108,7 +99,7 @@
                         <button class="nav-link" id="lvl2-tab" data-bs-toggle="tab" data-bs-target="#lvl2" type="button">Ур. 2: IP-Маршруты</button>
                     </li>
                     <li class="nav-item">
-                        <button class="nav-link" id="lvl3-tab" data-bs-toggle="tab" data-bs-target="#lvl3" type="button">Ур. 3: BGP Роутер (Python)</button>
+                        <button class="nav-link" id="lvl3-tab" data-bs-toggle="tab" data-bs-target="#lvl3" type="button">Ур. 3: Сетевая консоль</button>
                     </li>
                 </ul>
                 
@@ -156,24 +147,32 @@
 
                     <!-- УРОВЕНЬ 3 -->
                     <div class="tab-pane fade" id="lvl3">
-                        <h4>Разработка BGP (Осталось: <span id="l3-remain">8</span> тестов)</h4>
+                        <h4>Сетевой администратор (Осталось: <span id="l3-remain">3</span>)</h4>
                         <div class="progress-bar-custom"><div class="progress-fill" id="l3-progress"></div></div>
                         <div id="l3-content">
-                            <p><em>Легенда:</em> Напишите на Python функцию <code>best_bgp_path(paths)</code>. Она принимает список строк (маршруты BGP) и должна вернуть ту строку, где меньше всего Автономных Систем (AS).</p>
+                            <p><em>Легенда:</em> Пользователи жалуются на недоступность сервера <strong id="l3-target" class="text-info">...</strong>.<br>
+                            Используйте утилиты <code>ipconfig</code>, <code>ping</code> и <code>tracert</code> в консоли, чтобы найти проблему.<br>
+                            Вам нужно определить <strong>IP-адрес узла, на котором обрывается трассировка</strong> (последний доступный шлюз).</p>
                             
-                            <textarea id="pycode">
-def best_bgp_path(paths):
-    # paths = ['AS100 AS200', 'AS100 AS300 AS400']
-    # Верните строку с минимальным количеством AS
-    
-</textarea>
-                            <div class="mt-2 text-warning" id="py-status">Инициализация Pyodide...</div>
-                            <div class="hint-box mt-2" id="l3-hint"></div>
-                            <button class="btn-success-custom mt-2" id="btn-run-code" onclick="runL3()" disabled>Отправить код на тестирование</button>
+                            <!-- Терминал -->
+                            <div style="background: #000; border: 1px solid #333; padding: 10px; font-family: monospace; font-size: 14px; height: 300px; overflow-y: auto; margin-bottom: 15px;" id="term-output" onclick="document.getElementById('term-input').focus()">
+                                <div style="color: #ccc;">Microsoft Windows [Version 10.0.19045.2965]<br>(c) Корпорация Майкрософт (Microsoft Corporation). Все права защищены.<br><br></div>
+                                <div id="term-history"></div>
+                                <div style="display: flex; color: #fff;">
+                                    <span style="margin-right: 8px;">C:\Users\Admin&gt;</span>
+                                    <input type="text" id="term-input" autocomplete="off" spellcheck="false" style="background: transparent; border: none; color: #fff; font-family: monospace; outline: none; width: 100%;" onkeydown="if(event.key === 'Enter') executeTerm()">
+                                </div>
+                            </div>
+                            
+                            <div class="d-flex align-items-center">
+                                <input type="text" id="l3-answer" class="form-control bg-dark text-white border-secondary me-2" placeholder="Введите IP-адрес обрыва..." style="width: 250px;">
+                                <button class="btn-success-custom mb-0" onclick="checkL3()">Ответить</button>
+                            </div>
+                            <div class="hint-box mt-3" id="l3-hint"></div>
                         </div>
                         <div id="l3-done" class="level-complete" style="display: none;">
                             <h3>МИССИЯ УСПЕШНО ВЫПОЛНЕНА! 🏆🚀</h3>
-                            <p>Маршрутизация настроена.</p>
+                            <p>Вы настоящий сетевой администратор.</p>
                             <button class="btn-custom mt-3" onclick="window.location.href='/menu'">Вернуться в меню</button>
                         </div>
                     </div>
@@ -184,6 +183,7 @@ def best_bgp_path(paths):
     </div>
 
     <script>
+
         let startTime = new Date();
         let attemptCount = 0;
         let actionLogs = [];
@@ -354,73 +354,116 @@ def best_bgp_path(paths):
         }
         loadL2();
 
-        // --- УРОВЕНЬ 3 (Pyodide) ---
-        let l3Target = 8; let l3Correct = 0; let pyodide = null;
-        let editor = CodeMirror.fromTextArea(document.getElementById("pycode"), { mode: "python", theme: "dracula", lineNumbers: true, indentUnit: 4 });
-        
-        async function initPyodide() {
-            pyodide = await loadPyodide();
-            document.getElementById('py-status').innerText = "Готово к работе";
-            document.getElementById('py-status').className = "text-success";
-            document.getElementById('btn-run-code').disabled = false;
-        }
-        initPyodide();
+        // --- УРОВЕНЬ 3 (Терминал) ---
+        let l3Target = 3; let l3Correct = 0; let l3State = null; let l3Processing = false;
+        const termHistory = document.getElementById('term-history');
+        const termInput = document.getElementById('term-input');
+        const termOutput = document.getElementById('term-output');
 
-        async function runL3() {
-            let code = editor.getValue();
-            attemptCount++;
-            let hint = document.getElementById('l3-hint');
+        async function loadL3() {
+            let res = await fetch('/api/networks_task', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({level: 3}) });
+            l3State = await res.json();
+            document.getElementById('l3-target').innerText = l3State.target_ip;
+            document.getElementById('l3-hint').style.display = 'none';
+            document.getElementById('l3-answer').value = '';
             
-            try {
-                await pyodide.runPythonAsync(code);
+            termHistory.innerHTML = '';
+            termInput.value = '';
+            printLine(`<div style="color: #0f0;">Соединение установлено. Терминал готов к работе. Попробуйте 'help'.</div><br>`);
+            l3Processing = false;
+        }
+
+        function printLine(html) {
+            const div = document.createElement('div');
+            div.innerHTML = html;
+            div.style.color = '#ccc';
+            div.style.marginBottom = '2px';
+            termHistory.appendChild(div);
+            termOutput.scrollTop = termOutput.scrollHeight;
+        }
+
+        async function executeTerm() {
+            if (l3Processing) return;
+            const cmd = termInput.value.trim();
+            if (!cmd) return;
+            
+            printLine(`<div>C:\Users\Admin&gt; ${cmd}</div>`);
+            termInput.value = '';
+            
+            const parts = cmd.split(' ').filter(x => x);
+            const base = parts[0].toLowerCase();
+            
+            if (base === 'help') {
+                printLine(`Доступные утилиты:<br>  ipconfig - настройки IP<br>  ping &lt;ip&gt; - проверка связи<br>  tracert &lt;ip&gt; - трассировка маршрута<br>  cls - очистка экрана`);
+            } else if (base === 'cls') {
+                termHistory.innerHTML = '';
+            } else if (base === 'ipconfig') {
+                printLine(`Настройка протокола IP для Windows<br><br>Адаптер Ethernet Ethernet:<br><br>   DNS-суффикс подключения . . . . . :<br>   IPv4-адрес. . . . . . . . . . . . : ${l3State.local_ip}<br>   Маска подсети . . . . . . . . . . : 255.255.255.0<br>   Основной шлюз. . . . . . . . . : 192.168.1.1<br><br>`);
+            } else if (base === 'ping') {
+                if(parts.length < 2) { printLine('Синтаксис команды: ping &lt;ip-адрес&gt;'); return; }
+                const target = parts[1];
+                printLine(`Обмен пакетами с ${target} по с 32 байтами данных:`);
                 
-                // Проверяем 8 тестов
-                for(let i=0; i<l3Target; i++) {
-                    let res = await fetch('/api/networks_task', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({level: 3}) });
-                    let state = await res.json();
-                    
-                    // Передаем данные в JS
-                    let pathsJson = JSON.stringify(state.paths);
-                    
-                    // Запускаем пользовательскую функцию
-                    let runCode = `
-import json
-paths = json.loads('${pathsJson}')
-best_bgp_path(paths)
-`;
-                    let result = await pyodide.runPythonAsync(runCode);
-                    
-                    // Проверяем результат
-                    let expected_hops = 999;
-                    for(let p of state.paths) {
-                        let hops = p.split(' ').length;
-                        if(hops < expected_hops) expected_hops = hops;
-                    }
-                    
-                    if(typeof result !== 'string') {
-                        throw new Error("Функция должна вернуть строку!");
-                    }
-                    if(result.split(' ').length !== expected_hops || !state.paths.includes(result)) {
-                        throw new Error(`Ошибка на тесте: ${pathsJson}. Возвращено: ${result}`);
+                termInput.disabled = true;
+                for(let i=0; i<4; i++) {
+                    await new Promise(r => setTimeout(r, 500));
+                    if (target === l3State.target_ip || target.startsWith('8.8.') || target.startsWith('1.1.')) {
+                        printLine(`Ответ от ${l3State.hops[l3State.broken_idx] || target}: Заданный узел недоступен.`);
+                    } else if (target === l3State.local_ip || target === '192.168.1.1' || (l3State.hops.includes(target) && l3State.hops.indexOf(target) <= l3State.broken_idx)) {
+                        printLine(`Ответ от ${target}: число байт=32 время&lt;1мс TTL=64`);
+                    } else {
+                        printLine(`Превышен интервал ожидания для запроса.`);
                     }
                 }
+                printLine(`Статистика Ping для ${target}:<br>    Пакетов: отправлено = 4, получено = 4, потеряно = 0<br>`);
+                termInput.disabled = false;
+                termInput.focus();
+            } else if (base === 'tracert') {
+                if(parts.length < 2) { printLine('Синтаксис команды: tracert &lt;ip-адрес&gt;'); return; }
+                const target = parts[1];
+                printLine(`Трассировка маршрута к ${target} с максимальным числом прыжков 30:<br>`);
                 
-                // Если прошли все циклы без ошибок
-                l3Correct = l3Target;
-                document.getElementById('l3-remain').innerText = "0";
-                document.getElementById('l3-progress').style.width = `100%`;
-                logAction(`L3: pycode_success`, true);
-                
-                document.getElementById('l3-content').style.display = 'none';
-                document.getElementById('l3-done').style.display = 'block';
-                checkGlobalCompletion();
-                
-            } catch (err) {
-                logAction(`L3: pycode_err`, false);
-                hint.innerHTML = `<strong>Ошибка!</strong><br><pre style="white-space: pre-wrap; font-size:0.8rem;">${err.message}</pre>`;
-                hint.style.borderLeftColor = '#e94560'; hint.style.background = 'rgba(233, 69, 96, 0.2)'; hint.style.display = 'block';
+                termInput.disabled = true;
+                for(let i=0; i<l3State.hops.length; i++) {
+                    await new Promise(r => setTimeout(r, 600));
+                    if (i <= l3State.broken_idx) {
+                        let ms = Math.floor(Math.random() * 5) + 1;
+                        printLine(`  ${i+1} &nbsp;&nbsp;&nbsp; ${ms} мс &nbsp;&nbsp;&nbsp; ${ms+1} мс &nbsp;&nbsp;&nbsp; ${ms} мс &nbsp;&nbsp; ${l3State.hops[i]}`);
+                    } else {
+                        printLine(`  ${i+1} &nbsp;&nbsp;&nbsp; * &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; * &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; * &nbsp;&nbsp;&nbsp;&nbsp; Превышен интервал ожидания для запроса.`);
+                    }
+                }
+                printLine(`Трассировка завершена.<br>`);
+                termInput.disabled = false;
+                termInput.focus();
+            } else {
+                printLine(`'${base}' не является внутренней или внешней командой, исполняемой программой или пакетным файлом.`);
             }
         }
+
+        function checkL3() {
+            if (l3Processing) return;
+            l3Processing = true; attemptCount++;
+            let userAns = document.getElementById('l3-answer').value.trim();
+            logAction(`L3_Term: user=${userAns}, actual=${l3State.ans}`, userAns === l3State.ans);
+            let hint = document.getElementById('l3-hint');
+            
+            if (userAns === l3State.ans) {
+                l3Correct++; document.getElementById('l3-remain').innerText = l3Target - l3Correct;
+                document.getElementById('l3-progress').style.width = `${(l3Correct/l3Target)*100}%`;
+                hint.innerHTML = `<strong>Верно!</strong> Причина обрыва локализована на ${l3State.ans}.`; hint.style.borderLeftColor = '#228b22'; hint.style.background = 'rgba(34, 139, 34, 0.2)'; hint.style.display = 'block';
+                if (l3Correct >= l3Target) { 
+                    setTimeout(() => { document.getElementById('l3-content').style.display = 'none'; document.getElementById('l3-done').style.display = 'block'; checkGlobalCompletion(); }, 2000); 
+                } else { 
+                    setTimeout(() => loadL3(), 2000); 
+                }
+            } else {
+                hint.innerHTML = `<strong>Ошибка!</strong><br>Это не последний доступный узел. Внимательно посмотрите на результаты tracert.`; hint.style.borderLeftColor = '#e94560'; hint.style.background = 'rgba(233, 69, 96, 0.2)'; hint.style.display = 'block';
+                setTimeout(() => { l3Processing = false; }, 3000);
+            }
+        }
+        loadL3();
     </script>
+
 </body>
 </html>

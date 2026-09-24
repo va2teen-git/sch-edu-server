@@ -728,11 +728,25 @@ def api_networks_task():
         return jsonify(generate_network_l2_task())
     elif level == 3:
         import random
-        generated_paths = []
-        for _ in range(4):
-            hops = random.randint(2, 6)
-            generated_paths.append(" ".join([f"AS{random.randint(100, 999)}" for _ in range(hops)]))
-        return jsonify({"paths": generated_paths})
+        target_ip = f"{random.randint(8, 200)}.{random.randint(1, 255)}.{random.randint(1, 255)}.{random.randint(1, 255)}"
+        local_ip = f"192.168.1.{random.randint(2, 254)}"
+        
+        # generate 5 hops
+        hops = ["192.168.1.1"]
+        for i in range(4):
+            hops.append(f"{random.randint(10, 200)}.{random.randint(1, 255)}.{random.randint(1, 255)}.{random.randint(1, 254)}")
+            
+        broken_idx = random.randint(1, 3) # breaks at hop 2, 3, or 4 (index 1, 2, 3)
+        last_good_ip = hops[broken_idx - 1]
+        
+        return jsonify({
+            "target_ip": target_ip,
+            "local_ip": local_ip,
+            "hops": hops,
+            "broken_idx": broken_idx,
+            "ans": last_good_ip,
+            "hint": f"Используйте tracert {target_ip} чтобы увидеть маршрут. Запишите IP последнего успешного прыжка."
+        })
 
 if __name__ == '__main__':
     from waitress import serve
