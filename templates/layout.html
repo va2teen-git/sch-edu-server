@@ -70,9 +70,12 @@
         <nav class="navbar navbar-expand-lg navbar-dark bg-dark border-bottom border-secondary" style="min-height: 56px;">
         <div class="container-fluid">
             <button id="global-hc-btn" class="btn btn-sm" onclick="toggleGlobalHardcore()" style="font-size: 1.5rem; opacity: 0.3; border: none; background: transparent; padding: 0; margin-right: 15px; transition: all 0.3s;" title="Режим Хардкора">💀</button>
-<div class="d-flex ms-auto">
-                {% if request.endpoint != 'menu' and session.get('student_name') and session.get('grade') != 'teacher' %}
-                    <a href="/menu" class="btn btn-outline-secondary border-0" title="В главное меню" style="font-size: 1.2rem;">🏠</a>
+<div class="d-flex ms-auto align-items-center">
+                {% if session.get('student_name') and session.get('grade') != 'teacher' %}
+                    {% if request.endpoint != 'menu' %}
+                        <a href="/menu" class="btn btn-outline-secondary border-0 me-2" title="В главное меню" style="font-size: 1.2rem;">🏠</a>
+                    {% endif %}
+                    <a href="/" class="btn btn-outline-danger btn-sm border-0" title="Выйти из аккаунта">Выйти ({{ session.get('student_name', '').split(' ')[0] }})</a>
                 {% elif session.get('grade') == 'teacher' %}
                     <a class="btn btn-outline-danger border-0" href="/">Выйти из панели</a>
                 {% endif %}
