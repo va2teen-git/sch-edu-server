@@ -707,7 +707,7 @@ def api_law_task():
                 "scenario": 1,
                 "target_ip": target_ip, "local_ip": local_ip, "gateway": gateway,
                 "hops": hops, "broken_idx": broken_idx,
-                "ans": hops[broken_idx - 1],
+                "ans": hops[broken_idx],
                 "task_text": f"Пользователи жалуются на недоступность сервера <strong class='text-info'>{target_ip}</strong>. Используя утилиту <code>tracert</code>, определите IP-адрес последнего доступного шлюза (узла) перед обрывом маршрута.",
                 "hint": f"Введите tracert {target_ip} и посмотрите, какой IP-адрес был на строке ПЕРЕД первой строкой с 'Превышен интервал ожидания'."
             })
