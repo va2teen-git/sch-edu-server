@@ -441,7 +441,7 @@
             
             let hint = document.getElementById('l1-hint');
             if (isCorrect) {
-                l1Correct++; document.getElementById('l1-remain').innerText = l1Target - l1Correct;
+                l1Correct++; saveProgress(); document.getElementById('l1-remain').innerText = l1Target - l1Correct;
                 document.getElementById('l1-progress').style.width = `${(l1Correct/l1Target)*100}%`;
                 hint.innerHTML = `<strong>Верно!</strong> Сеть функционирует.`; hint.style.borderLeftColor = '#228b22'; hint.style.background = 'rgba(34, 139, 34, 0.2)'; hint.style.display = 'block';
                 if (l1Correct >= l1Target) { 
@@ -454,8 +454,47 @@
                 setTimeout(() => { l1Processing = false; }, 2000);
             }
         }
-        loadL1();
 
+
+        // Progress Saving Logic
+        const studentName = "{{ session.get('student_name', 'default') }}";
+        const progKey = `networks_prog_${studentName}`;
+        
+        function saveProgress() {
+            localStorage.setItem(progKey, JSON.stringify({
+                l1: l1Correct, l2: l2Correct, l3: l3Correct
+            }));
+        }
+        
+        function initLevel(lCorrect, lTarget, divContent, divDone, spanRemain, progBar, loadFn) {
+            document.getElementById(spanRemain).innerText = lTarget - lCorrect;
+            document.getElementById(progBar).style.width = `${(lCorrect/lTarget)*100}%`;
+            if (lCorrect >= lTarget) {
+                document.getElementById(divContent).style.display = 'none';
+                document.getElementById(divDone).style.display = 'block';
+            } else {
+                loadFn();
+            }
+        }
+        
+        function loadAllProgress() {
+            let saved = localStorage.getItem(progKey);
+            if (saved) {
+                try {
+                    let p = JSON.parse(saved);
+                    l1Correct = p.l1 || 0;
+                    l2Correct = p.l2 || 0;
+                    l3Correct = p.l3 || 0;
+                } catch(e) {}
+            }
+            initLevel(l1Correct, l1Target, 'l1-content', 'l1-done', 'l1-remain', 'l1-progress', loadL1);
+            initLevel(l2Correct, l2Target, 'l2-content', 'l2-done', 'l2-remain', 'l2-progress', loadL2);
+            initLevel(l3Correct, l3Target, 'l3-content', 'l3-done', 'l3-remain', 'l3-progress', loadL3);
+            checkGlobalCompletion();
+        }
+        
+        window.addEventListener('DOMContentLoaded', loadAllProgress);
+        
         // --- УРОВЕНЬ 2 ---
         let l2Target = 5; let l2Correct = 0; let l2State = null; let l2Processing = false;
         async function loadL2() {
@@ -473,7 +512,7 @@
             logAction(`L2: user=${userAns}, actual=${l2State.ans}`, isCorrect);
             let hint = document.getElementById('l2-hint');
             if (isCorrect) {
-                l2Correct++; document.getElementById('l2-remain').innerText = l2Target - l2Correct;
+                l2Correct++; saveProgress(); document.getElementById('l2-remain').innerText = l2Target - l2Correct;
                 document.getElementById('l2-progress').style.width = `${(l2Correct/l2Target)*100}%`;
                 hint.innerHTML = `<strong>Верно!</strong>`; hint.style.borderLeftColor = '#228b22'; hint.style.background = 'rgba(34, 139, 34, 0.2)'; hint.style.display = 'block';
                 if (l2Correct >= l2Target) { setTimeout(() => { document.getElementById('l2-content').style.display = 'none'; document.getElementById('l2-done').style.display = 'block'; checkGlobalCompletion(); }, 1000); } else { setTimeout(() => loadL2(), 1000); }
@@ -482,7 +521,6 @@
                 setTimeout(() => loadL2(), 3000);
             }
         }
-        loadL2();
 
         // --- УРОВЕНЬ 3 (Терминал) ---
         let l3Target = 3; let l3Correct = 0; let l3State = null; let l3Processing = false;
@@ -595,7 +633,7 @@
             let hint = document.getElementById('l3-hint');
             
             if (userAns === l3State.ans) {
-                l3Correct++; document.getElementById('l3-remain').innerText = l3Target - l3Correct;
+                l3Correct++; saveProgress(); document.getElementById('l3-remain').innerText = l3Target - l3Correct;
                 document.getElementById('l3-progress').style.width = `${(l3Correct/l3Target)*100}%`;
                 hint.innerHTML = `<strong>Верно!</strong> Правильный ответ: ${l3State.ans}.`; hint.style.borderLeftColor = '#228b22'; hint.style.background = 'rgba(34, 139, 34, 0.2)'; hint.style.display = 'block';
                 if (l3Correct >= l3Target) { 
@@ -608,7 +646,7 @@
                 setTimeout(() => { l3Processing = false; }, 3000);
             }
         }
-        loadL3();
+
     </script>
 
 </body>
