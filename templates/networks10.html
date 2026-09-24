@@ -642,6 +642,7 @@
                     setTimeout(() => loadL3(), 2000); 
                 }
             } else {
+                if (typeof triggerHardcoreReset === "function" && triggerHardcoreReset("Неверный ответ в терминале (Уровень 3)")) return;
                 hint.innerHTML = `<strong>Ошибка!</strong><br>` + l3State.hint; hint.style.borderLeftColor = '#e94560'; hint.style.background = 'rgba(233, 69, 96, 0.2)'; hint.style.display = 'block';
                 setTimeout(() => { l3Processing = false; }, 3000);
             }

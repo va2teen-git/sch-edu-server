@@ -36,17 +36,40 @@
             background-color: #222 !important;
             color: #aaa !important;
         }
+
         .nav-tabs .nav-link.active {
             border-bottom-color: transparent !important;
             background-color: #1e1e1e !important; /* Соответствует цвету карточки */
             color: #fff !important;
             font-weight: bold;
         }
+        @keyframes shake {
+          0% { transform: translate(1px, 1px) rotate(0deg); }
+          10% { transform: translate(-1px, -2px) rotate(-1deg); }
+          20% { transform: translate(-3px, 0px) rotate(1deg); }
+          30% { transform: translate(3px, 2px) rotate(0deg); }
+          40% { transform: translate(1px, -1px) rotate(1deg); }
+          50% { transform: translate(-1px, 2px) rotate(-1deg); }
+          60% { transform: translate(-3px, 1px) rotate(0deg); }
+          70% { transform: translate(3px, 1px) rotate(-1deg); }
+          80% { transform: translate(-1px, -1px) rotate(1deg); }
+          90% { transform: translate(1px, 2px) rotate(0deg); }
+          100% { transform: translate(1px, -2px) rotate(-1deg); }
+        }
+        .hc-active {
+            opacity: 1 !important;
+            animation: shake 0.5s infinite;
+            filter: drop-shadow(0 0 5px red);
+            color: red !important;
+        }
     </style>
+
 </head>
 <body class="{% if hide_navbar %}modern-font{% endif %}">
     {% if not hide_navbar %}
+    <button id="global-hc-btn" class="btn btn-sm" onclick="toggleGlobalHardcore()" style="position: fixed; top: 10px; left: 15px; font-size: 1.5rem; opacity: 0.3; z-index: 9999; border: none; background: transparent; padding: 0; transition: all 0.3s;" title="Режим Хардкора">💀</button>
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark border-bottom border-secondary">
+
         <div class="container-fluid">
             <!-- Логотип удален для минимализма -->
             
@@ -72,6 +95,38 @@
         {% block content %}{% endblock %}
     </div>
     <script src="/static/bootstrap.bundle.min.js"></script>
+    <script>
+        function getGlobalHardcore() {
+            return localStorage.getItem('global_hardcore') === 'true';
+        }
+        function setGlobalHardcoreUI(active) {
+            const btn = document.getElementById('global-hc-btn');
+            if(btn) {
+                if (active) btn.classList.add('hc-active');
+                else btn.classList.remove('hc-active');
+            }
+        }
+        function toggleGlobalHardcore() {
+            let active = !getGlobalHardcore();
+            localStorage.setItem('global_hardcore', active);
+            setGlobalHardcoreUI(active);
+        }
+        function triggerHardcoreReset(msg) {
+            if (getGlobalHardcore()) {
+                let hc = getGlobalHardcore();
+                localStorage.clear();
+                localStorage.setItem('global_hardcore', hc);
+                alert("💀 ХАРДКОР: " + msg + " Весь прогресс сброшен!");
+                window.location.reload();
+                return true;
+            }
+            return false;
+        }
+        document.addEventListener('DOMContentLoaded', () => {
+            setGlobalHardcoreUI(getGlobalHardcore());
+        });
+    </script>
     {% block scripts %}{% endblock %}
+
 </body>
 </html>

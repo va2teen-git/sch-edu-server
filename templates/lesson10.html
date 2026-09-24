@@ -158,7 +158,7 @@
         </div>
     </div>
 </div>
-<button id="hc-btn" class="btn btn-sm" onclick="toggleHardcore()" style="position: absolute; top: 10px; left: 15px; font-size: 1.5rem; opacity: 0.3; z-index: 1000; border: none; background: transparent; padding: 0;">💀</button>
+
 {% endblock %}
 
 {% block scripts %}
@@ -177,13 +177,7 @@
 </style>
 
 <script>
-    let hardcoreMode = false;
-    function toggleHardcore() {
-        hardcoreMode = !hardcoreMode;
-        const btn = document.getElementById('hc-btn');
-        if(hardcoreMode) {
-            btn.classList.add('hc-active');
-        } else {
+    else {
             btn.classList.remove('hc-active');
             btn.style.opacity = '0.3';
         }

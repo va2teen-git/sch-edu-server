@@ -150,6 +150,7 @@
             body: JSON.stringify({ has_error: hasError })
         }).then(r => r.json()).then(data => {
             const el = document.getElementById('res0');
+            if (!data.success && typeof triggerHardcoreReset === "function" && triggerHardcoreReset(data.msg)) return;
             el.innerHTML = data.success ? `<span class="text-success">✅ ${data.msg}</span>` : `<span class="text-danger">❌ ${data.msg}</span>`;
             if(data.success) { setTimeout(() => location.reload(), 1500); sendTelemetry('Четность', true); }
         });
@@ -164,6 +165,7 @@
             body: JSON.stringify({ answer: ans })
         }).then(r => r.json()).then(data => {
             const el = document.getElementById('res1');
+            if (!data.success && typeof triggerHardcoreReset === "function" && triggerHardcoreReset(data.msg)) return;
             el.innerHTML = data.success ? `<span class="text-success">✅ ${data.msg}</span>` : `<span class="text-danger">❌ ${data.msg}</span>`;
             if(data.success) { setTimeout(() => location.reload(), 1500); sendTelemetry('Повторение', true); }
         });
@@ -178,6 +180,7 @@
             body: JSON.stringify({ position: pos })
         }).then(r => r.json()).then(data => {
             const el = document.getElementById('res2');
+            if (!data.success && typeof triggerHardcoreReset === "function" && triggerHardcoreReset(data.msg)) return;
             el.innerHTML = data.success ? `<span class="text-success">✅ ${data.msg}</span>` : `<span class="text-danger">❌ ${data.msg}</span>`;
             if(data.success) { setTimeout(() => location.reload(), 1500); sendTelemetry('Хэмминг', true); }
         });

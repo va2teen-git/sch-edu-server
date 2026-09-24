@@ -450,6 +450,7 @@
                     setTimeout(() => loadL3(), 1500);
                 }
             } else {
+                if (typeof triggerHardcoreReset === "function" && triggerHardcoreReset("Допущена ошибка!")) return;
                 hint.innerHTML = `<strong>Ошибка при проверке!</strong><br>` + l3State.hint;
                 hint.style.background = 'rgba(255, 68, 68, 0.2)';
                 hint.style.borderLeftColor = '#ff4444';

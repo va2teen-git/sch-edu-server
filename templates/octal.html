@@ -175,6 +175,7 @@
                 });
 
             } else {
+                if (typeof triggerHardcoreReset === "function" && triggerHardcoreReset(data.msg)) return;
                 resultMsg.innerHTML = '<span class="text-danger">❌ ' + data.msg + '</span>';
                 document.getElementById(inputId).value = '';
                 document.getElementById(inputId).classList.add('border-danger');
