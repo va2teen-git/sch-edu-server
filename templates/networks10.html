@@ -310,21 +310,40 @@
             userEdges.forEach((edge, idx) => {
                 const d1 = l1State.devices.find(d => d.id === edge[0]);
                 const d2 = l1State.devices.find(d => d.id === edge[1]);
-                const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
-                line.setAttribute("x1", d1.vx);
-                line.setAttribute("y1", d1.vy);
-                line.setAttribute("x2", d2.vx);
-                line.setAttribute("y2", d2.vy);
-                line.setAttribute("stroke", "#00ffcc");
-                line.setAttribute("stroke-width", "3");
-                line.setAttribute("opacity", "0.7");
-                line.style.cursor = "pointer";
-                line.onmousedown = (e) => e.stopPropagation();
-                line.onclick = () => {
+                
+                const gLine = document.createElementNS("http://www.w3.org/2000/svg", "g");
+                gLine.style.cursor = "pointer";
+
+                const visibleLine = document.createElementNS("http://www.w3.org/2000/svg", "line");
+                visibleLine.setAttribute("x1", d1.vx);
+                visibleLine.setAttribute("y1", d1.vy);
+                visibleLine.setAttribute("x2", d2.vx);
+                visibleLine.setAttribute("y2", d2.vy);
+                visibleLine.setAttribute("stroke", "#00ffcc");
+                visibleLine.setAttribute("stroke-width", "3");
+                visibleLine.setAttribute("opacity", "0.7");
+                
+                const hitLine = document.createElementNS("http://www.w3.org/2000/svg", "line");
+                hitLine.setAttribute("x1", d1.vx);
+                hitLine.setAttribute("y1", d1.vy);
+                hitLine.setAttribute("x2", d2.vx);
+                hitLine.setAttribute("y2", d2.vy);
+                hitLine.setAttribute("stroke", "transparent");
+                hitLine.setAttribute("stroke-width", "20");
+                
+                gLine.onmouseenter = () => { visibleLine.setAttribute("stroke", "#ff4444"); visibleLine.setAttribute("stroke-width", "5"); };
+                gLine.onmouseleave = () => { visibleLine.setAttribute("stroke", "#00ffcc"); visibleLine.setAttribute("stroke-width", "3"); };
+                
+                gLine.onmousedown = (e) => e.stopPropagation();
+                gLine.onclick = (e) => {
+                    e.stopPropagation();
                     userEdges.splice(idx, 1);
                     renderNetwork();
                 };
-                svg.appendChild(line);
+                
+                gLine.appendChild(visibleLine);
+                gLine.appendChild(hitLine);
+                svg.appendChild(gLine);
             });
             
             const typeEmojis = {
