@@ -112,7 +112,7 @@
                             <p><em>Задание:</em> Кликайте по устройствам, чтобы проложить кабель. Соберите корпоративную сеть! Иерархия: Интернет ➔ Firewall ➔ Шлюз ➔ Ядро сети. К Ядру подключаются Серверы и коммутаторы (Свитчи) отделов. К свитчам отделов — их ПК и Wi-Fi точки. Смартфоны — по Wi-Fi. Клик по кабелю удаляет его.</p>
                             
                             <div style="width: 100%; background: #0d1b2a; border: 1px solid #00ffcc; margin-bottom: 15px; display: flex; justify-content: center; align-items: center; padding: 10px;">
-                                <svg id="network-svg" viewBox="0 0 800 400" preserveAspectRatio="xMidYMid meet" style="width: 100%; height: auto; max-height: 400px; display: block;"></svg>
+                                <svg id="network-svg" viewBox="0 0 1000 700" preserveAspectRatio="xMidYMid meet" style="width: 100%; height: auto; max-height: 70vh; display: block;"></svg>
                             </div>
                             
                             <div class="hint-box" id="l1-hint"></div>
@@ -217,6 +217,32 @@
         let l1Target = 3; let l1Correct = 0; let l1State = null; let l1Processing = false;
         let userEdges = [];
         let currentSelection = null;
+        let isDragging = false;
+        let dragNode = null;
+        let dragOffsetX = 0;
+        let dragOffsetY = 0;
+        
+        // Add global mouse events for dragging
+        document.addEventListener('mousemove', (e) => {
+            if (!dragNode) return;
+            const svg = document.getElementById('network-svg');
+            const pt = svg.createSVGPoint();
+            pt.x = e.clientX;
+            pt.y = e.clientY;
+            const svgP = pt.matrixTransform(svg.getScreenCTM().inverse());
+            
+            dragNode.vx = svgP.x - dragOffsetX;
+            dragNode.vy = svgP.y - dragOffsetY;
+            isDragging = true;
+            renderNetwork();
+        });
+        
+        document.addEventListener('mouseup', () => {
+            if (dragNode) {
+                // if it wasn't dragged much, it will be handled by the click handler
+                setTimeout(() => { dragNode = null; isDragging = false; }, 50);
+            }
+        });
 
         async function loadL1() {
             let res = await fetch('/api/networks_task', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({level: 1}) });
@@ -225,6 +251,19 @@
             currentSelection = null;
             document.getElementById('l1-hint').style.display = 'none';
             l1Processing = false;
+            
+            // Assign grid tray coordinates
+            // Grid field is 0-500. Tray is 500-700.
+            let trayStartX = 50;
+            let trayStartY = 550;
+            let cols = 12; // fits in 1000 width easily
+            l1State.devices.forEach((d, i) => {
+                let row = Math.floor(i / cols);
+                let col = i % cols;
+                d.vx = trayStartX + col * 80;
+                d.vy = trayStartY + row * 80;
+            });
+            
             renderNetwork();
         }
 
@@ -232,24 +271,55 @@
             if(!l1State) return;
             const svg = document.getElementById('network-svg');
             svg.innerHTML = '';
+            svg.onclick = () => { if(!isDragging) { currentSelection = null; renderNetwork(); } };
             
-            // Внутренние размеры холста для viewBox="0 0 800 400"
-            const W = 800;
-            const H = 400;
+            // Рисуем сетку для поля
+            for (let i = 0; i <= 1000; i += 50) {
+                const vLine = document.createElementNS("http://www.w3.org/2000/svg", "line");
+                vLine.setAttribute("x1", i); vLine.setAttribute("y1", 0);
+                vLine.setAttribute("x2", i); vLine.setAttribute("y2", 500);
+                vLine.setAttribute("stroke", "rgba(255,255,255,0.05)");
+                svg.appendChild(vLine);
+            }
+            for (let j = 0; j <= 500; j += 50) {
+                const hLine = document.createElementNS("http://www.w3.org/2000/svg", "line");
+                hLine.setAttribute("x1", 0); hLine.setAttribute("y1", j);
+                hLine.setAttribute("x2", 1000); hLine.setAttribute("y2", j);
+                hLine.setAttribute("stroke", "rgba(255,255,255,0.05)");
+                svg.appendChild(hLine);
+            }
+            
+            // Линия разделяющая поле и инвентарь
+            const sep = document.createElementNS("http://www.w3.org/2000/svg", "line");
+            sep.setAttribute("x1", 0); sep.setAttribute("y1", 500);
+            sep.setAttribute("x2", 1000); sep.setAttribute("y2", 500);
+            sep.setAttribute("stroke", "#00ffcc");
+            sep.setAttribute("stroke-width", "2");
+            sep.setAttribute("stroke-dasharray", "5,5");
+            svg.appendChild(sep);
+            
+            // Текст-подсказка
+            const txt = document.createElementNS("http://www.w3.org/2000/svg", "text");
+            txt.setAttribute("x", 10); txt.setAttribute("y", 520);
+            txt.setAttribute("fill", "#00ffcc");
+            txt.setAttribute("font-size", "14px");
+            txt.textContent = "Инвентарь (перетащите элементы на сетку выше):";
+            svg.appendChild(txt);
 
             // Рисуем связи (кабели)
             userEdges.forEach((edge, idx) => {
                 const d1 = l1State.devices.find(d => d.id === edge[0]);
                 const d2 = l1State.devices.find(d => d.id === edge[1]);
                 const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
-                line.setAttribute("x1", (d1.x / 100) * W);
-                line.setAttribute("y1", (d1.y / 100) * H);
-                line.setAttribute("x2", (d2.x / 100) * W);
-                line.setAttribute("y2", (d2.y / 100) * H);
+                line.setAttribute("x1", d1.vx);
+                line.setAttribute("y1", d1.vy);
+                line.setAttribute("x2", d2.vx);
+                line.setAttribute("y2", d2.vy);
                 line.setAttribute("stroke", "#00ffcc");
                 line.setAttribute("stroke-width", "3");
                 line.setAttribute("opacity", "0.7");
                 line.style.cursor = "pointer";
+                line.onmousedown = (e) => e.stopPropagation();
                 line.onclick = () => {
                     userEdges.splice(idx, 1);
                     renderNetwork();
@@ -257,25 +327,17 @@
                 svg.appendChild(line);
             });
             
-            // Рисуем узлы (устройства)
             const typeEmojis = {
-                'internet': '☁️',
-                'firewall': '🧱',
-                'router': '🔀',
-                'switch': '🎛️',
-                'server': '🗄️',
-                'pc': '💻',
-                'wifi': '📡',
-                'phone': '📱',
-                'printer': '🖨️'
+                'internet': '☁️', 'firewall': '🧱', 'router': '🔀', 'switch': '🎛️',
+                'server': '🗄️', 'pc': '💻', 'wifi': '📡', 'phone': '📱', 'printer': '🖨️'
             };
             
             l1State.devices.forEach(d => {
                 const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
-                g.style.cursor = "pointer";
+                g.style.cursor = "grab";
                 
-                const cx = (d.x / 100) * W;
-                const cy = (d.y / 100) * H;
+                const cx = d.vx;
+                const cy = d.vy;
                 const boxSize = 40;
                 
                 const rect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
@@ -289,32 +351,52 @@
                 
                 const emoji = document.createElementNS("http://www.w3.org/2000/svg", "text");
                 emoji.setAttribute("x", cx);
-                // Adjust Y slightly for better emoji vertical centering in SVG
                 emoji.setAttribute("y", cy + 2);
                 emoji.setAttribute("text-anchor", "middle");
                 emoji.setAttribute("dominant-baseline", "middle");
                 emoji.setAttribute("font-size", "22px");
                 emoji.textContent = typeEmojis[d.type] || '❓';
+                emoji.style.userSelect = "none";
                 
                 const label = document.createElementNS("http://www.w3.org/2000/svg", "text");
                 label.setAttribute("x", cx);
-                label.setAttribute("y", cy + boxSize/2 + 12);
+                label.setAttribute("y", cy + boxSize/2 + 15);
                 label.setAttribute("text-anchor", "middle");
                 label.setAttribute("fill", "#00ffcc");
-                label.setAttribute("font-size", "10px");
+                label.setAttribute("font-size", "11px");
                 label.setAttribute("font-family", "sans-serif");
                 label.textContent = d.name;
+                label.style.userSelect = "none";
                 
                 g.appendChild(rect);
                 g.appendChild(emoji);
                 g.appendChild(label);
                 
-                g.onclick = () => handleDeviceClick(d.id);
+                g.onmousedown = (e) => {
+                    e.stopPropagation();
+                    const pt = svg.createSVGPoint();
+                    pt.x = e.clientX;
+                    pt.y = e.clientY;
+                    const svgP = pt.matrixTransform(svg.getScreenCTM().inverse());
+                    dragNode = d;
+                    dragOffsetX = svgP.x - d.vx;
+                    dragOffsetY = svgP.y - d.vy;
+                    isDragging = false;
+                };
+                
+                g.onclick = (e) => {
+                    e.stopPropagation();
+                    if (!isDragging) {
+                        handleDeviceClick(d.id);
+                    }
+                };
+                
                 svg.appendChild(g);
             });
         }
 
         function handleDeviceClick(id) {
+
             if (l1Processing) return;
             if (!currentSelection) {
                 currentSelection = id;
