@@ -140,36 +140,36 @@ def generate_network_l1_task():
     difficulty = random.randint(1, 3)
     
     devices = [
-        {"id": "inet", "name": "Провайдер", "type": "internet", "x": 50, "y": 10},
+        {"id": "inet", "name": "Провайдер", "type": "internet", "x": 50, "y": 15},
         {"id": "router", "name": "Маршрутизатор", "type": "router", "x": 50, "y": 40}
     ]
     edges = [["inet", "router"]]
     
     if difficulty <= 2:
-        devices.append({"id": "sw1", "name": "Коммутатор", "type": "switch", "x": 50, "y": 70})
+        devices.append({"id": "sw1", "name": "Коммутатор", "type": "switch", "x": 50, "y": 65})
         edges.append(["router", "sw1"])
         
         num_pcs = random.randint(2, 4)
         for i in range(num_pcs):
-            devices.append({"id": f"pc{i}", "name": f"ПК {i+1}", "type": "pc", "x": 20 + i*20, "y": 100})
+            devices.append({"id": f"pc{i}", "name": f"ПК {i+1}", "type": "pc", "x": 20 + i*20, "y": 150})
             edges.append(["sw1", f"pc{i}"])
             
         if difficulty == 2:
-            devices.append({"id": "pr1", "name": "Принтер", "type": "printer", "x": 80, "y": 100})
+            devices.append({"id": "pr1", "name": "Принтер", "type": "printer", "x": 80, "y": 150})
             edges.append(["sw1", "pr1"])
             
     else:
-        devices.append({"id": "sw1", "name": "Коммутатор 1", "type": "switch", "x": 25, "y": 70})
-        devices.append({"id": "sw2", "name": "Коммутатор 2", "type": "switch", "x": 75, "y": 70})
+        devices.append({"id": "sw1", "name": "Коммутатор 1", "type": "switch", "x": 25, "y": 65})
+        devices.append({"id": "sw2", "name": "Коммутатор 2", "type": "switch", "x": 75, "y": 65})
         edges.append(["router", "sw1"])
         edges.append(["router", "sw2"])
         
-        devices.append({"id": "pc1", "name": "ПК 1", "type": "pc", "x": 15, "y": 100})
-        devices.append({"id": "pc2", "name": "ПК 2", "type": "pc", "x": 35, "y": 100})
+        devices.append({"id": "pc1", "name": "ПК 1", "type": "pc", "x": 15, "y": 150})
+        devices.append({"id": "pc2", "name": "ПК 2", "type": "pc", "x": 35, "y": 150})
         edges.append(["sw1", "pc1"])
         edges.append(["sw1", "pc2"])
         
-        devices.append({"id": "pc3", "name": "ПК 3", "type": "pc", "x": 75, "y": 100})
+        devices.append({"id": "pc3", "name": "ПК 3", "type": "pc", "x": 75, "y": 150})
         edges.append(["sw2", "pc3"])
         
     random.shuffle(devices)

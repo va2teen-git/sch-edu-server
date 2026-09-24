@@ -111,8 +111,8 @@
                         <div id="l1-content">
                             <p><em>Задание:</em> Кликайте по устройствам, чтобы проложить кабель между ними. Постройте правильную иерархию (от провайдера к маршрутизатору, затем к коммутатору, затем к конечным устройствам). Клик по кабелю удаляет его.</p>
                             
-                            <div style="width: 100%; height: 350px; background: #0d1b2a; border: 1px solid #00ffcc; position: relative; margin-bottom: 15px;">
-                                <svg id="network-svg" style="width: 100%; height: 100%;"></svg>
+                            <div style="width: 100%; background: #0d1b2a; border: 1px solid #00ffcc; margin-bottom: 15px; display: flex; justify-content: center; align-items: center; padding: 10px;">
+                                <svg id="network-svg" viewBox="0 0 800 400" preserveAspectRatio="xMidYMid meet" style="width: 100%; height: auto; max-height: 400px; display: block;"></svg>
                             </div>
                             
                             <div class="hint-box" id="l1-hint"></div>
@@ -235,17 +235,21 @@
             const svg = document.getElementById('network-svg');
             svg.innerHTML = '';
             
+            // Внутренние размеры холста для viewBox="0 0 800 400"
+            const W = 800;
+            const H = 400;
+
             // Рисуем связи (кабели)
             userEdges.forEach((edge, idx) => {
                 const d1 = l1State.devices.find(d => d.id === edge[0]);
                 const d2 = l1State.devices.find(d => d.id === edge[1]);
                 const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
-                line.setAttribute("x1", d1.x + "%");
-                line.setAttribute("y1", d1.y + "%");
-                line.setAttribute("x2", d2.x + "%");
-                line.setAttribute("y2", d2.y + "%");
+                line.setAttribute("x1", (d1.x / 100) * W);
+                line.setAttribute("y1", (d1.y / 100) * H);
+                line.setAttribute("x2", (d2.x / 100) * W);
+                line.setAttribute("y2", (d2.y / 100) * H);
                 line.setAttribute("stroke", "#00ffcc");
-                line.setAttribute("stroke-width", "3");
+                line.setAttribute("stroke-width", "4");
                 line.style.cursor = "pointer";
                 line.onclick = () => {
                     userEdges.splice(idx, 1);
@@ -259,21 +263,28 @@
                 const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
                 g.style.cursor = "pointer";
                 
+                const cx = (d.x / 100) * W;
+                const cy = (d.y / 100) * H;
+                const boxW = 120;
+                const boxH = 40;
+                
                 const rect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
-                rect.setAttribute("x", `calc(${d.x}% - 45px)`);
-                rect.setAttribute("y", `calc(${d.y}% - 15px)`);
-                rect.setAttribute("width", "90");
-                rect.setAttribute("height", "30");
+                rect.setAttribute("x", cx - boxW/2);
+                rect.setAttribute("y", cy - boxH/2);
+                rect.setAttribute("width", boxW);
+                rect.setAttribute("height", boxH);
                 rect.setAttribute("fill", currentSelection === d.id ? "#e94560" : "#0f3460");
                 rect.setAttribute("stroke", "#00ffcc");
+                rect.setAttribute("stroke-width", "2");
                 
                 const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
-                text.setAttribute("x", d.x + "%");
-                text.setAttribute("y", d.y + "%");
+                text.setAttribute("x", cx);
+                text.setAttribute("y", cy);
                 text.setAttribute("text-anchor", "middle");
                 text.setAttribute("dominant-baseline", "middle");
                 text.setAttribute("fill", "#fff");
-                text.setAttribute("font-size", "11px");
+                text.setAttribute("font-size", "14px");
+                text.setAttribute("font-weight", "bold");
                 text.setAttribute("font-family", "sans-serif");
                 text.textContent = d.name;
                 
