@@ -150,9 +150,7 @@
                         <h4>Сетевой администратор (Осталось: <span id="l3-remain">3</span>)</h4>
                         <div class="progress-bar-custom"><div class="progress-fill" id="l3-progress"></div></div>
                         <div id="l3-content">
-                            <p><em>Легенда:</em> Пользователи жалуются на недоступность сервера <strong id="l3-target" class="text-info">...</strong>.<br>
-                            Используйте утилиты <code>ipconfig</code>, <code>ping</code> и <code>tracert</code> в консоли, чтобы найти проблему.<br>
-                            Вам нужно определить <strong>IP-адрес узла, на котором обрывается трассировка</strong> (последний доступный шлюз).</p>
+                            <p id="l3-scenario-text"><em>Легенда:</em> ...</p>
                             
                             <!-- Терминал -->
                             <div style="background: #000; border: 1px solid #333; padding: 10px; font-family: monospace; font-size: 14px; height: 300px; overflow-y: auto; margin-bottom: 15px;" id="term-output" onclick="document.getElementById('term-input').focus()">
@@ -394,7 +392,7 @@
         async function loadL3() {
             let res = await fetch('/api/networks_task', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({level: 3}) });
             l3State = await res.json();
-            document.getElementById('l3-target').innerText = l3State.target_ip;
+            document.getElementById('l3-scenario-text').innerHTML = '<em>Легенда:</em> ' + l3State.task_text;
             document.getElementById('l3-hint').style.display = 'none';
             document.getElementById('l3-answer').value = '';
             
@@ -431,22 +429,28 @@
             } else if (base === 'ipconfig') {
                 printLine(`Настройка протокола IP для Windows<br><br>Адаптер Ethernet Ethernet:<br><br>   DNS-суффикс подключения . . . . . :<br>   IPv4-адрес. . . . . . . . . . . . : ${l3State.local_ip}<br>   Маска подсети . . . . . . . . . . : 255.255.255.0<br>   Основной шлюз. . . . . . . . . : 192.168.1.1<br><br>`);
             } else if (base === 'ping') {
-                if(parts.length < 2) { printLine('Синтаксис команды: ping &lt;ip-адрес&gt;'); return; }
+                if(parts.length < 2) { printLine('Синтаксис команды: ping &lt;ip-адрес/домен&gt;'); return; }
                 const target = parts[1];
-                printLine(`Обмен пакетами с ${target} по с 32 байтами данных:`);
+                let resolved_ip = target;
+                if (l3State.scenario === 4 && target.toLowerCase() === l3State.domain) {
+                    resolved_ip = l3State.target_ip;
+                    printLine(`Обмен пакетами с ${target} [${resolved_ip}] по с 32 байтами данных:`);
+                } else {
+                    printLine(`Обмен пакетами с ${target} по с 32 байтами данных:`);
+                }
                 
                 termInput.disabled = true;
                 for(let i=0; i<4; i++) {
                     await new Promise(r => setTimeout(r, 500));
-                    if (target === l3State.target_ip || target.startsWith('8.8.') || target.startsWith('1.1.')) {
-                        printLine(`Ответ от ${l3State.hops[l3State.broken_idx] || target}: Заданный узел недоступен.`);
-                    } else if (target === l3State.local_ip || target === '192.168.1.1' || (l3State.hops.includes(target) && l3State.hops.indexOf(target) <= l3State.broken_idx)) {
-                        printLine(`Ответ от ${target}: число байт=32 время&lt;1мс TTL=64`);
+                    if (l3State.scenario === 1 && (resolved_ip === l3State.target_ip || resolved_ip.startsWith('8.8.') || resolved_ip.startsWith('1.1.'))) {
+                        printLine(`Ответ от ${l3State.hops[l3State.broken_idx] || resolved_ip}: Заданный узел недоступен.`);
+                    } else if (resolved_ip === l3State.local_ip || resolved_ip === '192.168.1.1' || (l3State.hops && l3State.hops.includes(resolved_ip) && l3State.hops.indexOf(resolved_ip) <= l3State.broken_idx) || (l3State.scenario === 4 && resolved_ip === l3State.target_ip)) {
+                        printLine(`Ответ от ${resolved_ip}: число байт=32 время&lt;1мс TTL=64`);
                     } else {
                         printLine(`Превышен интервал ожидания для запроса.`);
                     }
                 }
-                printLine(`Статистика Ping для ${target}:<br>    Пакетов: отправлено = 4, получено = 4, потеряно = 0<br>`);
+                printLine(`Статистика Ping для ${resolved_ip}:<br>    Пакетов: отправлено = 4, получено = 4, потеряно = 0<br>`);
                 termInput.disabled = false;
                 termInput.focus();
             } else if (base === 'tracert') {
@@ -455,13 +459,22 @@
                 printLine(`Трассировка маршрута к ${target} с максимальным числом прыжков 30:<br>`);
                 
                 termInput.disabled = true;
-                for(let i=0; i<l3State.hops.length; i++) {
+                let hops_to_show = l3State.scenario === 1 ? l3State.hops : [l3State.gateway, target];
+                let max_hops = l3State.scenario === 1 ? l3State.hops.length : 2;
+                
+                for(let i=0; i<max_hops; i++) {
                     await new Promise(r => setTimeout(r, 600));
-                    if (i <= l3State.broken_idx) {
-                        let ms = Math.floor(Math.random() * 5) + 1;
-                        printLine(`  ${i+1} &nbsp;&nbsp;&nbsp; ${ms} мс &nbsp;&nbsp;&nbsp; ${ms+1} мс &nbsp;&nbsp;&nbsp; ${ms} мс &nbsp;&nbsp; ${l3State.hops[i]}`);
+                    if (l3State.scenario === 1) {
+                        if (i <= l3State.broken_idx) {
+                            let ms = Math.floor(Math.random() * 5) + 1;
+                            printLine(`  ${i+1} &nbsp;&nbsp;&nbsp; ${ms} мс &nbsp;&nbsp;&nbsp; ${ms+1} мс &nbsp;&nbsp;&nbsp; ${ms} мс &nbsp;&nbsp; ${hops_to_show[i]}`);
+                        } else {
+                            printLine(`  ${i+1} &nbsp;&nbsp;&nbsp; * &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; * &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; * &nbsp;&nbsp;&nbsp;&nbsp; Превышен интервал ожидания для запроса.`);
+                        }
                     } else {
-                        printLine(`  ${i+1} &nbsp;&nbsp;&nbsp; * &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; * &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; * &nbsp;&nbsp;&nbsp;&nbsp; Превышен интервал ожидания для запроса.`);
+                        let ms = Math.floor(Math.random() * 5) + 1;
+                        let hop_ip = (l3State.scenario === 4 && i === 1 && target === l3State.domain) ? l3State.target_ip : hops_to_show[i];
+                        printLine(`  ${i+1} &nbsp;&nbsp;&nbsp; ${ms} мс &nbsp;&nbsp;&nbsp; ${ms+1} мс &nbsp;&nbsp;&nbsp; ${ms} мс &nbsp;&nbsp; ${hop_ip}`);
                     }
                 }
                 printLine(`Трассировка завершена.<br>`);
@@ -471,6 +484,7 @@
                 printLine(`'${base}' не является внутренней или внешней командой, исполняемой программой или пакетным файлом.`);
             }
         }
+
 
         function checkL3() {
             if (l3Processing) return;
@@ -482,14 +496,14 @@
             if (userAns === l3State.ans) {
                 l3Correct++; document.getElementById('l3-remain').innerText = l3Target - l3Correct;
                 document.getElementById('l3-progress').style.width = `${(l3Correct/l3Target)*100}%`;
-                hint.innerHTML = `<strong>Верно!</strong> Причина обрыва локализована на ${l3State.ans}.`; hint.style.borderLeftColor = '#228b22'; hint.style.background = 'rgba(34, 139, 34, 0.2)'; hint.style.display = 'block';
+                hint.innerHTML = `<strong>Верно!</strong> Правильный ответ: ${l3State.ans}.`; hint.style.borderLeftColor = '#228b22'; hint.style.background = 'rgba(34, 139, 34, 0.2)'; hint.style.display = 'block';
                 if (l3Correct >= l3Target) { 
                     setTimeout(() => { document.getElementById('l3-content').style.display = 'none'; document.getElementById('l3-done').style.display = 'block'; checkGlobalCompletion(); }, 2000); 
                 } else { 
                     setTimeout(() => loadL3(), 2000); 
                 }
             } else {
-                hint.innerHTML = `<strong>Ошибка!</strong><br>Это не последний доступный узел. Внимательно посмотрите на результаты tracert.`; hint.style.borderLeftColor = '#e94560'; hint.style.background = 'rgba(233, 69, 96, 0.2)'; hint.style.display = 'block';
+                hint.innerHTML = `<strong>Ошибка!</strong><br>` + l3State.hint; hint.style.borderLeftColor = '#e94560'; hint.style.background = 'rgba(233, 69, 96, 0.2)'; hint.style.display = 'block';
                 setTimeout(() => { l3Processing = false; }, 3000);
             }
         }

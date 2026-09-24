@@ -691,31 +691,56 @@ def api_law_task():
         return jsonify(random.choice(tasks))
         
     elif level == 3:
-        tasks = [
-            {"doc_type": "ПРОТОКОЛ ПРОВЕРКИ № 152/01", "target": "Сайт школы №5", "audit_result": "На сайте опубликован список учеников с их оценками и домашними адресами. Согласий родителей нет.", "is_violation": True, "hint": "Распространение ПД требует согласия."},
-            {"doc_type": "ПРОТОКОЛ ПРОВЕРКИ № 152/05", "target": "БЦ 'Альфа'", "audit_result": "Внедрена система распознавания лиц. У всех сотрудников есть бумажные согласия на биометрию.", "is_violation": False, "hint": "Биометрия требует письменного согласия. Оно получено."},
-            {"doc_type": "ПРОТОКОЛ ПРОВЕРКИ № 152/09", "target": "Магазин 'Шопоголик'", "audit_result": "При заказе галочка 'Согласен на рекламную рассылку' проставлена по умолчанию.", "is_violation": True, "hint": "Предустановленные галочки (opt-out) запрещены, согласие должно быть активным."},
-            {"doc_type": "ПРОТОКОЛ ПРОВЕРКИ № 152/12", "target": "Больница", "audit_result": "В реанимации пациенту без сознания оказывалась помощь, данные о здоровье занесены в базу без согласия.", "is_violation": False, "hint": "Медицинская помощь в экстренных случаях допускает обработку спец. ПД без согласия."},
-            {"doc_type": "ПРОТОКОЛ ПРОВЕРКИ № 152/16", "target": "Приложение 'Фонарик'", "audit_result": "Приложение требует доступ к GPS и Контактам, иначе не работает.", "is_violation": True, "hint": "Нарушение принципа целеполагания. Данные избыточны для фонарика."},
-            {"doc_type": "ПРОТОКОЛ ПРОВЕРКИ № 152/20", "target": "Соцсеть 'VK'", "audit_result": "Выяснилось, что базы ПД российских пользователей хранятся на серверах в Мюнхене.", "is_violation": True, "hint": "Нарушение локализации. ПД граждан РФ должны быть на серверах в РФ."},
-            {"doc_type": "ПРОТОКОЛ ПРОВЕРКИ № 152/24", "target": "Банк 'Кредит'", "audit_result": "При открытии счета банк запрашивает паспорт. Клиент жалуется, что не давал согласия на передачу паспорта.", "is_violation": False, "hint": "Обработка ПД без согласия допускается, если это необходимо для исполнения закона (ЦБ обязывает банки идентифицировать клиентов)."},
-            {"doc_type": "ПРОТОКОЛ ПРОВЕРКИ № 152/28", "target": "Доставка еды", "audit_result": "Приложение передает адреса и телефоны клиентов рекламным сетям без упоминания об этом в политике.", "is_violation": True, "hint": "Передача ПД третьим лицам требует явного согласия пользователя."},
-            {"doc_type": "ПРОТОКОЛ ПРОВЕРКИ № 152/32", "target": "Фитнес-клуб", "audit_result": "Для покупки абонемента в качалку требуют принести справку от психиатра и результаты анализов крови.", "is_violation": True, "hint": "Данные избыточны по отношению к заявленной цели обработки (посещение тренажерного зала)."},
-            {"doc_type": "ПРОТОКОЛ ПРОВЕРКИ № 152/36", "target": "Сайт поиска работы", "audit_result": "Сайт парсит (собирает) резюме людей с других порталов и публикует у себя без их ведома.", "is_violation": True, "hint": "Сбор и публикация ПД из открытых источников всё равно требует правового основания (например, согласия на распространение)."},
-            {"doc_type": "ПРОТОКОЛ ПРОВЕРКИ № 152/40", "target": "Школа", "audit_result": "На входе установлен турникет по отпечатку пальца. Альтернативы по магнитной карте нет, письменные согласия не собраны.", "is_violation": True, "hint": "Биометрия в школе без согласия родителей и без альтернативного прохода незаконна."},
-            {"doc_type": "ПРОТОКОЛ ПРОВЕРКИ № 152/44", "target": "Такси 'Ветерок'", "audit_result": "Приложение запрашивает GPS-геолокацию только во время поездки для расчета маршрута.", "is_violation": False, "hint": "Сбор данных обоснован целью оказания услуги."}
-        ]
-        return jsonify(random.choice(tasks))
-
-@app.route('/lesson/grade10/networks')
-def lesson_networks():
-    if 'student_name' not in session: return redirect('/')
-    log_action(session['student_name'], "Открыл Урок 13 (10кл): Сети и Протоколы")
-    return render_template('networks10.html')
-
-@app.route('/api/networks_task', methods=['POST'])
-def api_networks_task():
-    if 'student_name' not in session: return jsonify({"error": "No session"})
+        import random
+        scenario = random.randint(1, 4)
+        
+        target_ip = f"{random.randint(8, 200)}.{random.randint(1, 255)}.{random.randint(1, 255)}.{random.randint(1, 255)}"
+        local_ip = f"192.168.1.{random.randint(2, 254)}"
+        gateway = "192.168.1.1"
+        
+        if scenario == 1:
+            hops = [gateway]
+            for i in range(4):
+                hops.append(f"{random.randint(10, 200)}.{random.randint(1, 255)}.{random.randint(1, 255)}.{random.randint(1, 254)}")
+            broken_idx = random.randint(1, 3)
+            return jsonify({
+                "scenario": 1,
+                "target_ip": target_ip, "local_ip": local_ip, "gateway": gateway,
+                "hops": hops, "broken_idx": broken_idx,
+                "ans": hops[broken_idx - 1],
+                "task_text": f"Пользователи жалуются на недоступность сервера <strong class='text-info'>{target_ip}</strong>. Используя утилиту <code>tracert</code>, определите IP-адрес последнего доступного шлюза (узла) перед обрывом маршрута.",
+                "hint": f"Введите tracert {target_ip} и посмотрите, какой IP-адрес был на строке ПЕРЕД первой строкой с 'Превышен интервал ожидания'."
+            })
+            
+        elif scenario == 2:
+            return jsonify({
+                "scenario": 2,
+                "target_ip": target_ip, "local_ip": local_ip, "gateway": gateway,
+                "ans": gateway,
+                "task_text": "Пропал доступ к интернету. Первым делом нужно проверить доступность вашего локального маршрутизатора (Основного шлюза). Узнайте его IP-адрес с помощью <code>ipconfig</code> и введите в качестве ответа.",
+                "hint": "Введите ipconfig. Найдите строку 'Основной шлюз'. Это и есть ответ."
+            })
+            
+        elif scenario == 3:
+            return jsonify({
+                "scenario": 3,
+                "target_ip": target_ip, "local_ip": local_ip, "gateway": gateway,
+                "ans": local_ip,
+                "task_text": "Системный администратор просит вас сообщить ваш локальный IP-адрес для настройки удаленного доступа. Узнайте свой IPv4-адрес через консоль и введите его.",
+                "hint": "Введите ipconfig. Найдите строку 'IPv4-адрес'."
+            })
+            
+        elif scenario == 4:
+            domains = ["google.com", "yandex.ru", "vk.com", "sch.edu"]
+            domain = random.choice(domains)
+            return jsonify({
+                "scenario": 4,
+                "target_ip": target_ip, "local_ip": local_ip, "gateway": gateway,
+                "domain": domain,
+                "ans": target_ip,
+                "task_text": f"Сайт <strong class='text-info'>{domain}</strong> не открывается в браузере. Возможно проблема в DNS. Отправьте <code>ping {domain}</code> и выясните, в какой IP-адрес он разрешается сервером.",
+                "hint": f"Напишите ping {domain}. В первой же строке будет написано 'Обмен пакетами с {domain} [IP-АДРЕС]'. Введите этот IP."
+            })
     
     data = request.json
     level = data.get('level', 1)
@@ -728,25 +753,55 @@ def api_networks_task():
         return jsonify(generate_network_l2_task())
     elif level == 3:
         import random
+        scenario = random.randint(1, 4)
+        
         target_ip = f"{random.randint(8, 200)}.{random.randint(1, 255)}.{random.randint(1, 255)}.{random.randint(1, 255)}"
         local_ip = f"192.168.1.{random.randint(2, 254)}"
+        gateway = "192.168.1.1"
         
-        # generate 5 hops
-        hops = ["192.168.1.1"]
-        for i in range(4):
-            hops.append(f"{random.randint(10, 200)}.{random.randint(1, 255)}.{random.randint(1, 255)}.{random.randint(1, 254)}")
+        if scenario == 1:
+            hops = [gateway]
+            for i in range(4):
+                hops.append(f"{random.randint(10, 200)}.{random.randint(1, 255)}.{random.randint(1, 255)}.{random.randint(1, 254)}")
+            broken_idx = random.randint(1, 3)
+            return jsonify({
+                "scenario": 1,
+                "target_ip": target_ip, "local_ip": local_ip, "gateway": gateway,
+                "hops": hops, "broken_idx": broken_idx,
+                "ans": hops[broken_idx - 1],
+                "task_text": f"Пользователи жалуются на недоступность сервера <strong class='text-info'>{target_ip}</strong>. Используя утилиту <code>tracert</code>, определите IP-адрес последнего доступного шлюза (узла) перед обрывом маршрута.",
+                "hint": f"Введите tracert {target_ip} и посмотрите, какой IP-адрес был на строке ПЕРЕД первой строкой с 'Превышен интервал ожидания'."
+            })
             
-        broken_idx = random.randint(1, 3) # breaks at hop 2, 3, or 4 (index 1, 2, 3)
-        last_good_ip = hops[broken_idx - 1]
-        
-        return jsonify({
-            "target_ip": target_ip,
-            "local_ip": local_ip,
-            "hops": hops,
-            "broken_idx": broken_idx,
-            "ans": last_good_ip,
-            "hint": f"Используйте tracert {target_ip} чтобы увидеть маршрут. Запишите IP последнего успешного прыжка."
-        })
+        elif scenario == 2:
+            return jsonify({
+                "scenario": 2,
+                "target_ip": target_ip, "local_ip": local_ip, "gateway": gateway,
+                "ans": gateway,
+                "task_text": "Пропал доступ к интернету. Первым делом нужно проверить доступность вашего локального маршрутизатора (Основного шлюза). Узнайте его IP-адрес с помощью <code>ipconfig</code> и введите в качестве ответа.",
+                "hint": "Введите ipconfig. Найдите строку 'Основной шлюз'. Это и есть ответ."
+            })
+            
+        elif scenario == 3:
+            return jsonify({
+                "scenario": 3,
+                "target_ip": target_ip, "local_ip": local_ip, "gateway": gateway,
+                "ans": local_ip,
+                "task_text": "Системный администратор просит вас сообщить ваш локальный IP-адрес для настройки удаленного доступа. Узнайте свой IPv4-адрес через консоль и введите его.",
+                "hint": "Введите ipconfig. Найдите строку 'IPv4-адрес'."
+            })
+            
+        elif scenario == 4:
+            domains = ["google.com", "yandex.ru", "vk.com", "sch.edu"]
+            domain = random.choice(domains)
+            return jsonify({
+                "scenario": 4,
+                "target_ip": target_ip, "local_ip": local_ip, "gateway": gateway,
+                "domain": domain,
+                "ans": target_ip,
+                "task_text": f"Сайт <strong class='text-info'>{domain}</strong> не открывается в браузере. Возможно проблема в DNS. Отправьте <code>ping {domain}</code> и выясните, в какой IP-адрес он разрешается сервером.",
+                "hint": f"Напишите ping {domain}. В первой же строке будет написано 'Обмен пакетами с {domain} [IP-АДРЕС]'. Введите этот IP."
+            })
 
 if __name__ == '__main__':
     from waitress import serve
