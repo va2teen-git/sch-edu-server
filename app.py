@@ -106,6 +106,9 @@ class TaskAttempt(db.Model):
 
 with app.app_context():
     db.create_all()
+    # Ensure the sessions table is explicitly created (required for some Flask-Session versions)
+    if hasattr(app, 'session_interface') and hasattr(app.session_interface, 'sql_session_model'):
+        app.session_interface.sql_session_model.__table__.create(db.engine, checkfirst=True)
 
 def log_action(name, action_text):
     if name != '#учитель#':
