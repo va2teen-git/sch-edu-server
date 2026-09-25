@@ -724,6 +724,87 @@ def api_networks_task():
                 "hint": f"Напишите ping {domain}. В первой же строке будет написано 'Обмен пакетами с {domain} [IP-АДРЕС]'. Введите этот IP."
             })
 
+
+@app.route('/api/internet9/m1', methods=['POST'])
+def api_internet9_m1():
+    if 'student_name' not in session: return jsonify({'error': 'No session'})
+    import random
+    services = [
+        {'name': 'gosuslugi.ru', 'cat': 'Государственные'},
+        {'name': 'nalog.ru', 'cat': 'Государственные'},
+        {'name': 'wildberries.ru', 'cat': 'Коммерция'},
+        {'name': 'ozon.ru', 'cat': 'Коммерция'},
+        {'name': 'google docs', 'cat': 'Облачные'},
+        {'name': 'yandex disk', 'cat': 'Облачные'},
+        {'name': 'yandex.ru', 'cat': 'Поисковые'},
+        {'name': 'google.com', 'cat': 'Поисковые'}
+    ]
+    task = random.choice(services)
+    session['internet9_m1'] = task['cat']
+    return jsonify({'service': task['name'], 'categories': ['Государственные', 'Коммерция', 'Облачные', 'Поисковые']})
+
+@app.route('/api/internet9/m1/check', methods=['POST'])
+def api_internet9_m1_check():
+    if 'student_name' not in session: return jsonify({'error': 'No session'})
+    data = request.json
+    correct = (data.get('answer') == session.get('internet9_m1'))
+    status = 'success' if correct else 'fail'
+    log_action(session['student_name'], f"internet9_m1: {data.get('answer')} - {status}")
+    return jsonify({'correct': correct})
+
+@app.route('/api/internet9/m2', methods=['POST'])
+def api_internet9_m2():
+    if 'student_name' not in session: return jsonify({'error': 'No session'})
+    import random
+    words = ['Пушкин', 'Лермонтов', 'Толстой', 'Чехов']
+    w1, w2 = random.sample(words, 2)
+    q1 = f'{w1} | {w2}'
+    q2 = f'{w1} & {w2}'
+    q3 = w1
+    queries = [q1, q2, q3]
+    random.shuffle(queries)
+    question_type = random.choice(['МЕНЬШЕ', 'БОЛЬШЕ'])
+    if question_type == 'МЕНЬШЕ':
+        ans = q2
+    else:
+        ans = q1
+    session['internet9_m2'] = ans
+    return jsonify({'queries': queries, 'question': f'По какому запросу будет найдено {question_type} всего страниц?'})
+
+@app.route('/api/internet9/m2/check', methods=['POST'])
+def api_internet9_m2_check():
+    if 'student_name' not in session: return jsonify({'error': 'No session'})
+    data = request.json
+    correct = (data.get('answer') == session.get('internet9_m2'))
+    status = 'success' if correct else 'fail'
+    log_action(session['student_name'], f"internet9_m2: {data.get('answer')} - {status}")
+    return jsonify({'correct': correct})
+
+@app.route('/api/internet9/m3', methods=['POST'])
+def api_internet9_m3():
+    if 'student_name' not in session: return jsonify({'error': 'No session'})
+    import random
+    sites = [
+        {'url': 'https://sberbank.ru', 'type': 'Безопасно'},
+        {'url': 'http://sber-bank.xyz', 'type': 'Фишинг'},
+        {'url': 'https://vk.com', 'type': 'Безопасно'},
+        {'url': 'http://vk-login.ru', 'type': 'Фишинг'},
+        {'url': 'https://gosuslugi.ru', 'type': 'Безопасно'},
+        {'url': 'http://gosuslugi-auth.net', 'type': 'Фишинг'}
+    ]
+    task = random.choice(sites)
+    session['internet9_m3'] = task['type']
+    return jsonify({'url': task['url']})
+
+@app.route('/api/internet9/m3/check', methods=['POST'])
+def api_internet9_m3_check():
+    if 'student_name' not in session: return jsonify({'error': 'No session'})
+    data = request.json
+    correct = (data.get('answer') == session.get('internet9_m3'))
+    status = 'success' if correct else 'fail'
+    log_action(session['student_name'], f"internet9_m3: {data.get('answer')} - {status}")
+    return jsonify({'correct': correct})
+
 if __name__ == '__main__':
     from waitress import serve
     print("=====================================================")
@@ -745,7 +826,8 @@ def generic_lesson_route(grade, lesson_id):
         '11-tech_10': 'lesson10.html',
         '10-tech_12': 'law10.html',
         '10-tech_13': 'networks10.html',
-        '8_4': 'octal.html'
+        '8_4': 'octal.html',
+        '9_4': 'internet9.html'
     }
     key = f"{grade}_{lesson_id}"
     template_name = custom_templates.get(key, 'generic_lesson.html')
