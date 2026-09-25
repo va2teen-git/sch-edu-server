@@ -192,7 +192,7 @@
 
     <script>
 
-        const LESSON_NAME = "{{ lesson.theme }}";
+        const LESSON_NAME = {{ lesson.theme | tojson }};
         const taskNames = ['Уровень 1', 'Уровень 2', 'Уровень 3'];
         
         const startTimes = {};
