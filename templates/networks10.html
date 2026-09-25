@@ -98,72 +98,90 @@
                 <div class="tab-content mt-4">
                     <!-- УРОВЕНЬ 1 -->
                     <div class="tab-pane fade show active" id="lvl1">
-                        <h4>Сборка локальной сети (Осталось: <span id="l1-remain">3</span>)</h4>
-                        <div class="progress-bar-custom"><div class="progress-fill" id="l1-progress"></div></div>
-                        <div id="l1-content">
-                            <p><em>Задание:</em> Кликайте по устройствам, чтобы проложить кабель. Соберите корпоративную сеть! Иерархия: Интернет ➔ Firewall ➔ Шлюз ➔ Ядро сети. К Ядру подключаются Серверы и коммутаторы (Свитчи) отделов. К свитчам отделов — их ПК и Wi-Fi точки. Смартфоны — по Wi-Fi. Клик по кабелю удаляет его.</p>
-                            
-                            <div style="width: 100%; background: #0d1b2a; border: 1px solid #00ffcc; margin-bottom: 15px; display: flex; justify-content: center; align-items: center; padding: 10px;">
-                                <svg id="network-svg" viewBox="0 0 1000 700" preserveAspectRatio="xMidYMid meet" style="width: 100%; height: auto; max-height: 70vh; display: block;"></svg>
-                            </div>
-                            
-                            <div class="hint-box" id="l1-hint"></div>
-                            
-                            <button class="btn-success-custom" onclick="checkNetwork()">Проверить сеть</button>
-                            <button class="btn-custom" onclick="userEdges=[]; currentSelection=null; renderNetwork()">Сбросить кабели</button>
+                        <div id="l1-intro" class="text-center mt-4">
+                            <h4 class="text-warning">Задание 1: Сборка сети</h4>
+                            <p class="text-muted">Задание: Кликайте по устройствам, чтобы проложить кабель. Соберите корпоративную сеть! Иерархия: Интернет ➔ Firewall ➔ Шлюз ➔ Ядро сети. К Ядру подключаются Серверы и коммутаторы (Свитчи) отделов. К свитчам отделов — их ПК и Wi-Fi точки. Смартфоны — по Wi-Fi. Клик по кабелю удаляет его. Необходимо выполнить 3 раза.</p>
+                            <button class="btn btn-outline-warning mt-3" style="border-radius: 0; font-size: 1.2rem;" onclick="startTask('Уровень 1', 'l1-intro', 'l1-workspace')">НАЧАТЬ ЗАДАНИЕ</button>
                         </div>
-                        <div id="l1-done" class="level-complete" style="display: none;">
-                            <h3>Уровень 1 Пройден! 🏆</h3>
-                            <button class="btn-custom mt-3" onclick="document.getElementById('lvl2-tab').click()">Перейти к Уровню 2</button>
+                        <div id="l1-workspace" style="display: none;">
+                            <h4>Сборка локальной сети (Осталось: <span id="l1-remain">3</span>)</h4>
+                            <div class="progress-bar-custom"><div class="progress-fill" id="l1-progress"></div></div>
+                            <div id="l1-content">
+                                <div style="width: 100%; background: #0d1b2a; border: 1px solid #00ffcc; margin-bottom: 15px; display: flex; justify-content: center; align-items: center; padding: 10px;">
+                                    <svg id="network-svg" viewBox="0 0 1000 700" preserveAspectRatio="xMidYMid meet" style="width: 100%; height: auto; max-height: 70vh; display: block;"></svg>
+                                </div>
+                                
+                                <div class="hint-box" id="l1-hint"></div>
+                                
+                                <button class="btn-success-custom" onclick="checkNetwork()">Проверить сеть</button>
+                                <button class="btn-custom" onclick="userEdges=[]; currentSelection=null; renderNetwork()">Сбросить кабели</button>
+                            </div>
+                            <div id="l1-done" class="level-complete" style="display: none;">
+                                <h3>Уровень 1 Пройден! 🏆</h3>
+                                <button class="btn-custom mt-3" onclick="document.getElementById('lvl2-tab').click()">Перейти к Уровню 2</button>
+                            </div>
                         </div>
                     </div>
 
                     <!-- УРОВЕНЬ 2 -->
                     <div class="tab-pane fade" id="lvl2">
-                        <h4>Анализ IP-пакетов (Осталось: <span id="l2-remain">5</span>)</h4>
-                        <div class="progress-bar-custom"><div class="progress-fill" id="l2-progress"></div></div>
-                        <div id="l2-content">
-                            <p><em>Легенда:</em> Куда отправить этот пакет? Если IP в той же подсети - отправляйте локально (в коммутатор). Если в другой - на шлюз (в маршрутизатор).</p>
-                            <div class="doc-paper" id="l2-doc">Загрузка...</div>
-                            <div class="hint-box" id="l2-hint"></div>
-                            <div id="l2-buttons">
-                                <button class="btn-success-custom" onclick="checkL2('Локально')">Отправить Локально</button>
-                                <button class="btn-custom" onclick="checkL2('Шлюз')">Отправить на Шлюз</button>
-                            </div>
+                        <div id="l2-intro" class="text-center mt-4">
+                            <h4 class="text-warning">Задание 2: IP-Маршруты</h4>
+                            <p class="text-muted">Легенда: Куда отправить этот пакет? Если IP в той же подсети - отправляйте локально (в коммутатор). Если в другой - на шлюз (в маршрутизатор). Необходимо выполнить 5 раз.</p>
+                            <button class="btn btn-outline-warning mt-3" style="border-radius: 0; font-size: 1.2rem;" onclick="startTask('Уровень 2', 'l2-intro', 'l2-workspace')">НАЧАТЬ ЗАДАНИЕ</button>
                         </div>
-                        <div id="l2-done" class="level-complete" style="display: none;">
-                            <h3>Уровень 2 Пройден! 🏆</h3>
-                            <button class="btn-custom mt-3" onclick="document.getElementById('lvl3-tab').click()">Перейти к Уровню 3</button>
+                        <div id="l2-workspace" style="display: none;">
+                            <h4>Анализ IP-пакетов (Осталось: <span id="l2-remain">5</span>)</h4>
+                            <div class="progress-bar-custom"><div class="progress-fill" id="l2-progress"></div></div>
+                            <div id="l2-content">
+                                <div class="doc-paper" id="l2-doc">Загрузка...</div>
+                                <div class="hint-box" id="l2-hint"></div>
+                                <div id="l2-buttons">
+                                    <button class="btn-success-custom" onclick="checkL2('Локально')">Отправить Локально</button>
+                                    <button class="btn-custom" onclick="checkL2('Шлюз')">Отправить на Шлюз</button>
+                                </div>
+                            </div>
+                            <div id="l2-done" class="level-complete" style="display: none;">
+                                <h3>Уровень 2 Пройден! 🏆</h3>
+                                <button class="btn-custom mt-3" onclick="document.getElementById('lvl3-tab').click()">Перейти к Уровню 3</button>
+                            </div>
                         </div>
                     </div>
 
                     <!-- УРОВЕНЬ 3 -->
                     <div class="tab-pane fade" id="lvl3">
-                        <h4>Сетевой администратор (Осталось: <span id="l3-remain">3</span>)</h4>
-                        <div class="progress-bar-custom"><div class="progress-fill" id="l3-progress"></div></div>
-                        <div id="l3-content">
-                            <p id="l3-scenario-text"><em>Легенда:</em> ...</p>
-                            
-                            <!-- Терминал -->
-                            <div style="background: #000; border: 1px solid #333; padding: 10px; font-family: monospace; font-size: 14px; height: 300px; overflow-y: auto; margin-bottom: 15px;" id="term-output" onclick="document.getElementById('term-input').focus()">
-                                <div style="color: #ccc;">Microsoft Windows [Version 10.0.19045.2965]<br>(c) Корпорация Майкрософт (Microsoft Corporation). Все права защищены.<br><br></div>
-                                <div id="term-history"></div>
-                                <div style="display: flex; color: #fff;">
-                                    <span style="margin-right: 8px;">C:\Users\Admin&gt;</span>
-                                    <input type="text" id="term-input" autocomplete="off" spellcheck="false" style="background: transparent; border: none; color: #fff; font-family: monospace; outline: none; width: 100%;" onkeydown="if(event.key === 'Enter') executeTerm()">
-                                </div>
-                            </div>
-                            
-                            <div class="d-flex align-items-center">
-                                <input type="text" id="l3-answer" class="form-control bg-dark text-white border-secondary me-2" placeholder="Введите IP-адрес обрыва..." style="width: 250px;">
-                                <button class="btn-success-custom mb-0" onclick="checkL3()">Ответить</button>
-                            </div>
-                            <div class="hint-box mt-3" id="l3-hint"></div>
+                        <div id="l3-intro" class="text-center mt-4">
+                            <h4 class="text-warning">Задание 3: Сетевая консоль</h4>
+                            <p class="text-muted">Легенда: Используйте инструменты командной строки для диагностики сети и ответьте на вопрос. Необходимо выполнить 3 раза.</p>
+                            <button class="btn btn-outline-warning mt-3" style="border-radius: 0; font-size: 1.2rem;" onclick="startTask('Уровень 3', 'l3-intro', 'l3-workspace')">НАЧАТЬ ЗАДАНИЕ</button>
                         </div>
-                        <div id="l3-done" class="level-complete" style="display: none;">
-                            <h3>МИССИЯ УСПЕШНО ВЫПОЛНЕНА! 🏆🚀</h3>
-                            <p>Вы настоящий сетевой администратор.</p>
-                            <button class="btn-custom mt-3" onclick="window.location.href='/menu'">Вернуться в меню</button>
+                        <div id="l3-workspace" style="display: none;">
+                            <h4>Сетевой администратор (Осталось: <span id="l3-remain">3</span>)</h4>
+                            <div class="progress-bar-custom"><div class="progress-fill" id="l3-progress"></div></div>
+                            <div id="l3-content">
+                                <p id="l3-scenario-text"><em>Легенда:</em> ...</p>
+                                
+                                <!-- Терминал -->
+                                <div style="background: #000; border: 1px solid #333; padding: 10px; font-family: monospace; font-size: 14px; height: 300px; overflow-y: auto; margin-bottom: 15px;" id="term-output" onclick="document.getElementById('term-input').focus()">
+                                    <div style="color: #ccc;">Microsoft Windows [Version 10.0.19045.2965]<br>(c) Корпорация Майкрософт (Microsoft Corporation). Все права защищены.<br><br></div>
+                                    <div id="term-history"></div>
+                                    <div style="display: flex; color: #fff;">
+                                        <span style="margin-right: 8px;">C:\Users\Admin&gt;</span>
+                                        <input type="text" id="term-input" autocomplete="off" spellcheck="false" style="background: transparent; border: none; color: #fff; font-family: monospace; outline: none; width: 100%;" onkeydown="if(event.key === 'Enter') executeTerm()">
+                                    </div>
+                                </div>
+                                
+                                <div class="d-flex align-items-center">
+                                    <input type="text" id="l3-answer" class="form-control bg-dark text-white border-secondary me-2" placeholder="Введите IP-адрес обрыва..." style="width: 250px;">
+                                    <button class="btn-success-custom mb-0" onclick="checkL3()">Ответить</button>
+                                </div>
+                                <div class="hint-box mt-3" id="l3-hint"></div>
+                            </div>
+                            <div id="l3-done" class="level-complete" style="display: none;">
+                                <h3>МИССИЯ УСПЕШНО ВЫПОЛНЕНА! 🏆🚀</h3>
+                                <p>Вы настоящий сетевой администратор.</p>
+                                <button class="btn-custom mt-3" onclick="window.location.href='/menu'">Вернуться в меню</button>
+                            </div>
                         </div>
                     </div>
 
@@ -174,17 +192,39 @@
 
     <script>
 
-        const startTimes = { 'Уровень 1': new Date(), 'Уровень 2': new Date(), 'Уровень 3': new Date() };
-        const attemptsCount = { 'Уровень 1': 0, 'Уровень 2': 0, 'Уровень 3': 0 };
-        const actionLogs = { 'Уровень 1': [], 'Уровень 2': [], 'Уровень 3': [] };
+        const LESSON_NAME = "Сети и Протоколы (10кл)";
+        const taskNames = ['Уровень 1', 'Уровень 2', 'Уровень 3'];
+        
+        const startTimes = {};
+        const attemptsCount = {};
+        const actionLogs = {};
+        
+        taskNames.forEach(t => {
+            startTimes[t] = null;
+            attemptsCount[t] = 0;
+            actionLogs[t] = [];
+        });
+
+        function startTask(task, introId, workspaceId) {
+            document.getElementById(introId).style.display = 'none';
+            document.getElementById(workspaceId).style.display = 'block';
+            
+            startTimes[task] = new Date();
+            attemptsCount[task] = 0;
+            actionLogs[task] = [];
+            
+            sendTelemetry(task, 'in_progress');
+        }
 
         function logAction(task, action, success) {
+            if (!startTimes[task]) return;
             attemptsCount[task]++;
             actionLogs[task].push({ time: new Date().toISOString(), input: action, success: success });
             sendTelemetry(task, 'in_progress');
         }
 
         function sendTelemetry(task, status = 'completed') {
+            if (!startTimes[task]) return;
             const timeSpent = Math.floor((new Date() - startTimes[task]) / 1000);
             
             let isTaskSuccess = false;
@@ -193,13 +233,14 @@
             if (task === 'Уровень 3') isTaskSuccess = (l3Correct >= l3Target);
 
             fetch('/telemetry', {
-                method: 'POST', headers: {'Content-Type': 'application/json'},
+                method: 'POST', 
+                headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({
-                    mission_name: 'Сети и Протоколы (10кл) :: ' + task,
+                    mission_name: `${LESSON_NAME} :: ${task}`,
                     start_time: startTimes[task].toISOString(),
                     time_spent_sec: timeSpent,
                     attempts_count: attemptsCount[task],
-                    success: isTaskSuccess,
+                    success: (status === 'completed') ? true : isTaskSuccess,
                     action_log: JSON.stringify(actionLogs[task]),
                     status: status
                 })

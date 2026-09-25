@@ -77,6 +77,12 @@
             
             <!-- Задание 1 -->
             <div class="tab-pane fade show active" id="t1">
+                <div id="lvl1-intro" class="text-center mt-4">
+                    <h4 class="text-warning">Миссия 1: Цепь чёрных ящиков</h4>
+                    <p class="text-muted">Определите правильную последовательность подключения трех неизвестных алгоритмов, чтобы преобразовать входной сигнал в целевой выходной. Необходимо выполнить 3 раза.</p>
+                    <button class="btn btn-outline-warning mt-3" style="border-radius: 0 !important; font-size: 1.2rem;" onclick="startTask('М1 (Ящики)', 'lvl1-intro', 'lvl1-workspace')">НАЧАТЬ ЗАДАНИЕ</button>
+                </div>
+                <div id="lvl1-workspace" style="display: none;">
                 <div class="card cyber-box p-4 border-info">
                     <h4 class="text-info mb-3">Миссия 1: Цепь чёрных ящиков</h4>
                     <p class="small text-muted">Определите правильную последовательность подключения трех неизвестных алгоритмов, чтобы преобразовать входной сигнал в целевой выходной.</p>
@@ -99,6 +105,7 @@
                     <div class="progress-container"><div id="m1-prog" class="progress-bar-fill"></div></div>
                     <div class="text-end small text-muted mt-1"><span id="m1-count">0</span> / 3</div>
                     <div id="res1" class="mt-2 fw-bold text-center"></div>
+                </div>
                 </div>
             </div>
 
@@ -124,10 +131,17 @@
                     <div class="text-end small text-muted mt-1"><span id="m2-count">0</span> / 5</div>
                     <div id="res2" class="mt-2 fw-bold text-center text-muted">Нажмите кнопку, чтобы начать симуляцию (1 раунд = 5 сек выживания)</div>
                 </div>
+                </div>
             </div>
 
             <!-- Задание 3 -->
             <div class="tab-pane fade" id="t3">
+                <div id="lvl3-intro" class="text-center mt-4">
+                    <h4 class="text-warning">Миссия 3: Алгоритм TCP (Congestion Control)</h4>
+                    <p class="text-muted">Протокол TCP динамически меняет размер окна передачи в зависимости от обратной связи сети (наличие пакетов ACK или их потеря). Необходимо выполнить 8 раз.</p>
+                    <button class="btn btn-outline-warning mt-3" style="border-radius: 0 !important; font-size: 1.2rem;" onclick="startTask('М3 (TCP)', 'lvl3-intro', 'lvl3-workspace')">НАЧАТЬ ЗАДАНИЕ</button>
+                </div>
+                <div id="lvl3-workspace" style="display: none;">
                 <div class="card cyber-box p-4 border-success">
                     <h4 class="text-success mb-3">Миссия 3: Алгоритм TCP (Congestion Control)</h4>
                     <p class="small text-muted">Протокол TCP динамически меняет размер окна передачи в зависимости от обратной связи сети (наличие пакетов ACK или их потеря).</p>
@@ -152,6 +166,7 @@
                     <div class="progress-container"><div id="m3-prog" class="progress-bar-fill"></div></div>
                     <div class="text-end small text-muted mt-1"><span id="m3-count">0</span> / 8</div>
                     <div id="res3" class="mt-2 fw-bold text-center"></div>
+                </div>
                 </div>
             </div>
 
@@ -183,47 +198,61 @@
         }
     }
 
-    // --- ТЕЛЕМЕТРИЯ ---
-    const startTimes = {
-        'М1 (Ящики)': new Date(),
-        'М2 (Баланс ОС)': new Date(),
-        'М3 (TCP)': new Date()
-    };
-    let attemptsCount = { 'М1 (Ящики)': 0, 'М2 (Баланс ОС)': 0, 'М3 (TCP)': 0 };
-    let actionLogs = { 'М1 (Ящики)': [], 'М2 (Баланс ОС)': [], 'М3 (TCP)': [] };
+    // =======================================================
+    // СТАНДАРТ ТЕЛЕМЕТРИИ
+    // =======================================================
+    const LESSON_NAME = "Теория систем (11 кл)";
+    const taskNames = ['М1 (Ящики)', 'М2 (Баланс ОС)', 'М3 (TCP)'];
+    
+    const startTimes = {};
+    const attemptsCount = {};
+    const actionLogs = {};
+    
+    taskNames.forEach(t => {
+        startTimes[t] = null;
+        attemptsCount[t] = 0;
+        actionLogs[t] = [];
+    });
 
-    function logAction(mission, input, success) {
-        attemptsCount[mission]++;
-        actionLogs[mission].push({
-            time: new Date().toISOString(),
-            input: input,
-            success: success
-        });
-        // Сразу отправляем как 'in_progress' чтобы учитель видел онлайн
-        sendTel(mission, success, 'in_progress');
+    function startTask(task, introId, workspaceId) {
+        document.getElementById(introId).style.display = 'none';
+        document.getElementById(workspaceId).style.display = 'block';
+        
+        startTimes[task] = new Date();
+        attemptsCount[task] = 0;
+        actionLogs[task] = [];
+        
+        sendTelemetry(task, 'in_progress');
     }
 
-    function sendTel(mission, success, status = 'completed') {
-        const timeSpentSec = Math.floor((new Date() - startTimes[mission]) / 1000);
+    function logAction(task, action, success) {
+        if (!startTimes[task]) return;
+        attemptsCount[task]++;
+        actionLogs[task].push({ time: new Date().toISOString(), input: action, success: success });
+        sendTelemetry(task, 'in_progress');
+    }
+
+    function sendTelemetry(task, status = 'completed') {
+        const timeSpent = Math.floor((new Date() - startTimes[task]) / 1000);
+        
         fetch('/telemetry', {
-            method: 'POST',
+            method: 'POST', 
             headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({ 
-                mission_name: 'Теория систем (11 кл) :: ' + mission, 
-                success: success,
-                start_time: startTimes[mission].toISOString(),
-                time_spent_sec: timeSpentSec,
-                attempts_count: attemptsCount[mission],
-                action_log: JSON.stringify(actionLogs[mission]),
+            body: JSON.stringify({
+                mission_name: `${LESSON_NAME} :: ${task}`,
+                start_time: startTimes[task].toISOString(),
+                time_spent_sec: timeSpent,
+                attempts_count: attemptsCount[task],
+                success: (status === 'completed'),
+                action_log: JSON.stringify(actionLogs[task]),
                 status: status
             })
         });
         
-        // Сбрасываем для следующей попытки ТОЛЬКО если статус завершен
-        if(status === 'completed') {
-            startTimes[mission] = new Date();
-            attemptsCount[mission] = 0;
-            actionLogs[mission] = [];
+        if (status === 'completed') {
+            startTimes[task] = new Date();
+            attemptsCount[task] = 0;
+            actionLogs[task] = [];
         }
     }
 
@@ -275,7 +304,7 @@
             document.getElementById('tab1-count').innerText = m1_progress;
             resEl.innerHTML = `<span class="text-success">✅ Верно! Получено ${data.val}. Сборка #${m1_progress} готова.</span>`;
             if(m1_progress >= 3) {
-                sendTel('М1 (Ящики)', true);
+                sendTelemetry('М1 (Ящики)', 'completed');
                 resEl.innerHTML = '<span class="text-success">🏆 МИССИЯ ВЫПОЛНЕНА!</span>';
             } else {
                 setTimeout(generateM1, 1500);
@@ -286,7 +315,7 @@
             document.getElementById('m1-count').innerText = m1_progress;
             document.getElementById('tab1-count').innerText = m1_progress;
             resEl.innerHTML = `<span class="text-danger">❌ Ошибка! На выходе ${data.val}, а нужно ${data.target}. ${hardcoreMode ? 'Прогресс сброшен.' : 'Попробуйте еще раз!'}</span>`;
-            sendTel('М1 (Ящики)', false);
+            sendTelemetry('М1 (Ящики)', 'failed');
             setTimeout(generateM1, 2000);
         }
     }
@@ -324,7 +353,7 @@
                 document.getElementById('m2-count').innerText = m2_progress;
                 document.getElementById('tab2-count').innerText = m2_progress;
                 document.getElementById('res2').innerHTML = `<span class="text-danger">❌ СИСТЕМА ВЫШЛА ИЗ СТРОЯ! Вы не справились с управлением. ${hardcoreMode ? 'Прогресс сброшен.' : 'Запустите заново.'}</span>`;
-                sendTel('М2 (Баланс ОС)', false);
+                sendTelemetry('М2 (Баланс ОС)', 'failed');
             } else {
                 m2_timeAlive += 100;
                 if(m2_timeAlive >= 5000) {
@@ -337,7 +366,7 @@
                     document.getElementById('res2').innerHTML = `<span class="text-success">✅ СТАБИЛИЗАЦИЯ УСПЕШНА (${m2_progress}/5)</span>`;
                     
                     if(m2_progress >= 5) {
-                        sendTel('М2 (Баланс ОС)', true);
+                        sendTelemetry('М2 (Баланс ОС)', 'completed');
                         document.getElementById('res2').innerHTML = '<span class="text-success">🏆 МИССИЯ ВЫПОЛНЕНА! Вы идеальный контроллер с отрицательной ОС.</span>';
                     }
                 }
@@ -401,7 +430,7 @@
             resEl.innerHTML = `<span class="text-success">✅ Отлично! TCP окно настроено верно.</span>`;
             
             if(m3_progress >= 8) {
-                sendTel('М3 (TCP)', true);
+                sendTelemetry('М3 (TCP)', 'completed');
                 resEl.innerHTML = '<span class="text-success">🏆 МИССИЯ ВЫПОЛНЕНА! Вы освоили алгоритм TCP.</span>';
             } else {
                 setTimeout(generateM3, 1500);
@@ -412,7 +441,7 @@
             document.getElementById('m3-count').innerText = m3_progress;
             document.getElementById('tab3-count').innerText = m3_progress;
             resEl.innerHTML = `<span class="text-danger">❌ Сеть обрушена! ${hardcoreMode ? 'Прогресс сброшен.' : 'Попробуйте еще раз!'}</span>`;
-            sendTel('М3 (TCP)', false);
+            sendTelemetry('М3 (TCP)', 'failed');
             setTimeout(generateM3, 2000);
         }
     }

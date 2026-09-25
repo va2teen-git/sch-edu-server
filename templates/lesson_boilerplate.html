@@ -48,35 +48,53 @@
             <div class="tab-content" id="lessonTabsContent">
                 <!-- УРОВЕНЬ 1 -->
                 <div class="tab-pane fade show active" id="lvl1" role="tabpanel">
-                    <h4>Задание 1 (Осталось: <span id="l1-remain">3</span>)</h4>
-                    <div class="progress-bar-custom"><div class="progress-fill" id="l1-progress" style="width: 0%;"></div></div>
-                    <div id="l1-content">
-                        <!-- Контент задания 1 -->
-                        <p>Легенда: [Ваша легенда и элементы управления]. Нужно выполнить 3 раза.</p>
+                    <div id="l1-intro" class="text-center mt-4">
+                        <h4 class="text-warning">Задание 1: Название легенды</h4>
+                        <p class="text-muted">Легенда задания: описание ситуации и того, что требуется сделать. Необходимо выполнить 3 раза.</p>
+                        <button class="btn btn-outline-warning mt-3" style="border-radius: 0; font-size: 1.2rem;" onclick="startTask('Уровень 1', 'l1-intro', 'l1-workspace')">НАЧАТЬ ЗАДАНИЕ</button>
                     </div>
-                    <div id="l1-done" class="level-complete"><h3>Уровень 1 Пройден! 🏆</h3></div>
+                    <div id="l1-workspace" style="display: none;">
+                        <h4>Задание 1 (Осталось: <span id="l1-remain">3</span>)</h4>
+                        <div class="progress-bar-custom"><div class="progress-fill" id="l1-progress" style="width: 0%;"></div></div>
+                        <div id="l1-content">
+                            <!-- Контент задания 1 (инпуты, кнопки) -->
+                        </div>
+                        <div id="l1-done" class="level-complete"><h3>Уровень 1 Пройден! 🏆</h3></div>
+                    </div>
                 </div>
 
                 <!-- УРОВЕНЬ 2 -->
                 <div class="tab-pane fade" id="lvl2" role="tabpanel">
-                    <h4>Задание 2 (Осталось: <span id="l2-remain">5</span>)</h4>
-                    <div class="progress-bar-custom"><div class="progress-fill" id="l2-progress" style="width: 0%;"></div></div>
-                    <div id="l2-content">
-                        <!-- Контент задания 2 -->
-                        <p>Легенда: [Ваша легенда и элементы управления]. Нужно выполнить 5 раз.</p>
+                    <div id="l2-intro" class="text-center mt-4">
+                        <h4 class="text-warning">Задание 2: Название легенды</h4>
+                        <p class="text-muted">Легенда задания: описание ситуации и того, что требуется сделать. Необходимо выполнить 5 раз.</p>
+                        <button class="btn btn-outline-warning mt-3" style="border-radius: 0; font-size: 1.2rem;" onclick="startTask('Уровень 2', 'l2-intro', 'l2-workspace')">НАЧАТЬ ЗАДАНИЕ</button>
                     </div>
-                    <div id="l2-done" class="level-complete"><h3>Уровень 2 Пройден! 🏆</h3></div>
+                    <div id="l2-workspace" style="display: none;">
+                        <h4>Задание 2 (Осталось: <span id="l2-remain">5</span>)</h4>
+                        <div class="progress-bar-custom"><div class="progress-fill" id="l2-progress" style="width: 0%;"></div></div>
+                        <div id="l2-content">
+                            <!-- Контент задания 2 -->
+                        </div>
+                        <div id="l2-done" class="level-complete"><h3>Уровень 2 Пройден! 🏆</h3></div>
+                    </div>
                 </div>
 
                 <!-- УРОВЕНЬ 3 -->
                 <div class="tab-pane fade" id="lvl3" role="tabpanel">
-                    <h4>Задание 3 (Осталось: <span id="l3-remain">8</span>)</h4>
-                    <div class="progress-bar-custom"><div class="progress-fill" id="l3-progress" style="width: 0%;"></div></div>
-                    <div id="l3-content">
-                        <!-- Контент задания 3 -->
-                        <p>Легенда: [Ваша легенда и элементы управления]. Нужно выполнить 8 раз.</p>
+                    <div id="l3-intro" class="text-center mt-4">
+                        <h4 class="text-warning">Задание 3: Название легенды</h4>
+                        <p class="text-muted">Легенда задания: описание ситуации и того, что требуется сделать. Необходимо выполнить 8 раз.</p>
+                        <button class="btn btn-outline-warning mt-3" style="border-radius: 0; font-size: 1.2rem;" onclick="startTask('Уровень 3', 'l3-intro', 'l3-workspace')">НАЧАТЬ ЗАДАНИЕ</button>
                     </div>
-                    <div id="l3-done" class="level-complete"><h3>Уровень 3 Пройден! 🏆</h3></div>
+                    <div id="l3-workspace" style="display: none;">
+                        <h4>Задание 3 (Осталось: <span id="l3-remain">8</span>)</h4>
+                        <div class="progress-bar-custom"><div class="progress-fill" id="l3-progress" style="width: 0%;"></div></div>
+                        <div id="l3-content">
+                            <!-- Контент задания 3 -->
+                        </div>
+                        <div id="l3-done" class="level-complete"><h3>Уровень 3 Пройден! 🏆</h3></div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -99,15 +117,29 @@
     const attemptsCount = {};
     const actionLogs = {};
     
-    // Инициализация телеметрии
+    // Инициализация телеметрии (таймеры больше не стартуют при загрузке!)
     taskNames.forEach(t => {
-        startTimes[t] = new Date();
+        startTimes[t] = null;
         attemptsCount[t] = 0;
         actionLogs[t] = [];
     });
 
+    // Вызывается при нажатии кнопки "НАЧАТЬ ЗАДАНИЕ"
+    function startTask(task, introId, workspaceId) {
+        document.getElementById(introId).style.display = 'none';
+        document.getElementById(workspaceId).style.display = 'block';
+        
+        startTimes[task] = new Date();
+        attemptsCount[task] = 0;
+        actionLogs[task] = [];
+        
+        // Отправляем нулевой пинг, чтобы показать учителю, что задание начато
+        sendTelemetry(task, 'in_progress');
+    }
+
     // 3. Вызывайте эту функцию при каждой попытке/действии ученика
     function logAction(task, action, success) {
+        if (!startTimes[task]) return; // Защита от действий до старта
         attemptsCount[task]++;
         actionLogs[task].push({ time: new Date().toISOString(), input: action, success: success });
         sendTelemetry(task, 'in_progress');

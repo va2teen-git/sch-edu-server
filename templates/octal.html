@@ -3,13 +3,13 @@
 {% block content %}
 <style>
     body { background-color: #0f172a; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-    .lesson-card { background: #1e293b; border: 1px solid #334155; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
+    .lesson-card { background: #1e293b; border: 1px solid #334155; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
     .lesson-title { color: #38bdf8; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; }
-    .theory-box { background: #0f172a; border-left: 4px solid #38bdf8; border-radius: 4px; }
+    .theory-box { background: #0f172a; border-left: 4px solid #38bdf8; }
     
 
     
-    .safe-panel { background: #0f172a; border: 2px dashed #475569; border-radius: 8px; }
+    .safe-panel { background: #0f172a; border: 2px dashed #475569; }
     .btn-action { transition: all 0.2s ease; }
     .btn-action:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
 </style>
@@ -81,44 +81,59 @@
             <!-- LEVEL 1 -->
             <div class="tab-pane fade show active" id="lvl1" role="tabpanel">
                 <div class="card cyber-card p-4 text-center border-success">
-                    <h4 class="text-success">Уровень 1: Кибер-Сейф</h4>
-                    <p class="text-muted small">Переведи десятичное число в восьмеричное делением на 8 (на черновике).</p>
-                    <div class="alert alert-dark border-secondary">
-                        <h4 class="mb-0">PIN: <span class="cyber-text">{{ lvl1_dec }}</span><sub>10</sub></h4>
+                    <div id="lvl1-intro" class="text-center mt-4">
+                        <h4 class="text-success">Уровень 1: Кибер-Сейф</h4>
+                        <p class="text-muted small">Переведи десятичное число в восьмеричное делением на 8 (на черновике).</p>
+                        <button class="btn btn-outline-warning mt-3" style="border-radius: 0; font-size: 1.2rem;" onclick="startTask('Уровень 1', 'lvl1-intro', 'lvl1-workspace')">НАЧАТЬ ЗАДАНИЕ</button>
                     </div>
-                    <input type="text" id="ans1" class="form-control text-center bg-dark text-white mb-3" placeholder="Восьмеричный код">
-                    <button onclick="checkLevel(1, 'ans1')" class="btn btn-outline-success w-100">ВЗЛОМАТЬ</button>
-                    <div id="res1" class="mt-2 fw-bold"></div>
+                    <div id="lvl1-workspace" style="display: none;">
+                        <div class="alert alert-dark border-secondary">
+                            <h4 class="mb-0">PIN: <span class="cyber-text">{{ lvl1_dec }}</span><sub>10</sub></h4>
+                        </div>
+                        <input type="text" id="ans1" class="form-control text-center bg-dark text-white mb-3" placeholder="Восьмеричный код">
+                        <button onclick="checkLevel(1, 'ans1')" class="btn btn-outline-success w-100">ВЗЛОМАТЬ</button>
+                        <div id="res1" class="mt-2 fw-bold"></div>
+                    </div>
                 </div>
             </div>
 
             <!-- LEVEL 2 -->
             <div class="tab-pane fade" id="lvl2" role="tabpanel">
                 <div class="card cyber-card p-4 text-center border-warning">
-                    <h4 class="text-warning">Уровень 2: Перехват</h4>
-                    <p class="text-muted small">Расшифруй двоичный сигнал в восьмеричный код с помощью метода триад.</p>
-                    <div class="alert alert-dark border-secondary">
-                        <h4 class="mb-0">Сигнал: <span class="text-warning">{{ lvl2_bin }}</span><sub>2</sub></h4>
+                    <div id="lvl2-intro" class="text-center mt-4">
+                        <h4 class="text-warning">Уровень 2: Перехват</h4>
+                        <p class="text-muted small">Расшифруй двоичный сигнал в восьмеричный код с помощью метода триад.</p>
+                        <button class="btn btn-outline-warning mt-3" style="border-radius: 0; font-size: 1.2rem;" onclick="startTask('Уровень 2', 'lvl2-intro', 'lvl2-workspace')">НАЧАТЬ ЗАДАНИЕ</button>
                     </div>
-                    <input type="text" id="ans2" class="form-control text-center bg-dark text-white mb-3" placeholder="Восьмеричный код">
-                    <button onclick="checkLevel(2, 'ans2')" class="btn btn-outline-warning w-100">РАСШИФРОВАТЬ</button>
-                    <div id="res2" class="mt-2 fw-bold"></div>
+                    <div id="lvl2-workspace" style="display: none;">
+                        <div class="alert alert-dark border-secondary">
+                            <h4 class="mb-0">Сигнал: <span class="text-warning">{{ lvl2_bin }}</span><sub>2</sub></h4>
+                        </div>
+                        <input type="text" id="ans2" class="form-control text-center bg-dark text-white mb-3" placeholder="Восьмеричный код">
+                        <button onclick="checkLevel(2, 'ans2')" class="btn btn-outline-warning w-100">РАСШИФРОВАТЬ</button>
+                        <div id="res2" class="mt-2 fw-bold"></div>
+                    </div>
                 </div>
             </div>
 
             <!-- LEVEL 3 -->
             <div class="tab-pane fade" id="lvl3" role="tabpanel">
                 <div class="card cyber-card p-4 text-center border-danger">
-                    <h4 class="text-danger">Уровень 3: Отладчик</h4>
-                    <p class="text-muted small">Модуль перевода сломался. Найди ошибку при переводе и исправь <b>одну</b> цифру.</p>
-                    <div class="alert alert-dark border-secondary text-start small font-monospace">
-                        <div>Двоичное: <b>{{ lvl3_bin }}</b></div>
-                        <div>Ошибочный перевод: <b class="text-danger">{{ lvl3_fake }}</b></div>
+                    <div id="lvl3-intro" class="text-center mt-4">
+                        <h4 class="text-danger">Уровень 3: Отладчик</h4>
+                        <p class="text-muted small">Модуль перевода сломался. Найди ошибку при переводе и исправь <b>одну</b> цифру.</p>
+                        <button class="btn btn-outline-warning mt-3" style="border-radius: 0; font-size: 1.2rem;" onclick="startTask('Уровень 3', 'lvl3-intro', 'lvl3-workspace')">НАЧАТЬ ЗАДАНИЕ</button>
                     </div>
-                    <p class="small text-light">Какая цифра в восьмеричном коде неправильная? Введи <b>верную</b> цифру, которая должна стоять на её месте.</p>
-                    <input type="text" id="ans3" class="form-control text-center bg-dark text-white mb-3" placeholder="Верная цифра (одна)">
-                    <button onclick="checkLevel(3, 'ans3')" class="btn btn-outline-danger w-100">ИСПРАВИТЬ БАГ</button>
-                    <div id="res3" class="mt-2 fw-bold"></div>
+                    <div id="lvl3-workspace" style="display: none;">
+                        <div class="alert alert-dark border-secondary text-start small font-monospace">
+                            <div>Двоичное: <b>{{ lvl3_bin }}</b></div>
+                            <div>Ошибочный перевод: <b class="text-danger">{{ lvl3_fake }}</b></div>
+                        </div>
+                        <p class="small text-light">Какая цифра в восьмеричном коде неправильная? Введи <b>верную</b> цифру, которая должна стоять на её месте.</p>
+                        <input type="text" id="ans3" class="form-control text-center bg-dark text-white mb-3" placeholder="Верная цифра (одна)">
+                        <button onclick="checkLevel(3, 'ans3')" class="btn btn-outline-danger w-100">ИСПРАВИТЬ БАГ</button>
+                        <div id="res3" class="mt-2 fw-bold"></div>
+                    </div>
                 </div>
             </div>
 
@@ -129,31 +144,66 @@
 
 {% block scripts %}
 <script>
-    const startTimes = { '1': new Date(), '2': new Date(), '3': new Date() };
-    const attemptsCount = { '1': 0, '2': 0, '3': 0 };
-    const actionLogs = { '1': [], '2': [], '3': [] };
+    const LESSON_NAME = "Системы счисления (8 кл)";
+    const taskNames = ['Уровень 1', 'Уровень 2', 'Уровень 3'];
+    
+    const startTimes = {};
+    const attemptsCount = {};
+    const actionLogs = {};
+    
+    taskNames.forEach(t => {
+        startTimes[t] = null;
+        attemptsCount[t] = 0;
+        actionLogs[t] = [];
+    });
 
-    function logAction(level, action, success) {
-        attemptsCount[level]++;
-        actionLogs[level].push({ time: new Date().toISOString(), input: action, success: success });
+    function startTask(task, introId, workspaceId) {
+        document.getElementById(introId).style.display = 'none';
+        document.getElementById(workspaceId).style.display = 'block';
         
-        const timeSpentSec = Math.floor((new Date() - startTimes[level]) / 1000);
+        startTimes[task] = new Date();
+        attemptsCount[task] = 0;
+        actionLogs[task] = [];
+        
+        sendTelemetry(task, 'in_progress');
+    }
+
+    function logAction(task, action, success) {
+        if (!startTimes[task]) return;
+        attemptsCount[task]++;
+        actionLogs[task].push({ time: new Date().toISOString(), input: action, success: success });
+        sendTelemetry(task, 'in_progress');
+    }
+
+    function sendTelemetry(task, status = 'completed') {
+        if (!startTimes[task]) return;
+        const timeSpent = Math.floor((new Date() - startTimes[task]) / 1000);
+        
         fetch('/telemetry', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            method: 'POST', 
+            headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({
-                mission_name: `Системы счисления (8 кл) :: Уровень ${level}`,
-                start_time: startTimes[level].toISOString(),
-                time_spent_sec: timeSpentSec,
-                attempts_count: attemptsCount[level],
-                success: false,
-                action_log: JSON.stringify(actionLogs[level]),
-                status: 'in_progress'
+                mission_name: `${LESSON_NAME} :: ${task}`,
+                start_time: startTimes[task].toISOString(),
+                time_spent_sec: timeSpent,
+                attempts_count: attemptsCount[task],
+                success: (status === 'completed'),
+                action_log: JSON.stringify(actionLogs[task]),
+                status: status
             })
         });
+        
+        if (status === 'completed') {
+            startTimes[task] = new Date();
+            attemptsCount[task] = 0;
+            actionLogs[task] = [];
+        }
     }
 
     function checkLevel(level, inputId) {
+        const taskName = 'Уровень ' + level;
+        if (!startTimes[taskName]) return;
+        
         const answer = document.getElementById(inputId).value.trim();
         const resultMsg = document.getElementById('res' + level);
         
@@ -169,29 +219,14 @@
         })
         .then(response => response.json())
         .then(data => {
-            logAction(String(level), answer, data.success);
+            logAction(taskName, answer, data.success);
             
             if(data.success) {
                 resultMsg.innerHTML = '<span class="text-success">✅ ' + data.msg + '</span>';
                 document.getElementById(inputId).disabled = true;
                 document.getElementById(inputId).classList.add('border-success');
                 
-                // Telemetry Completed
-                const timeSpentSec = Math.floor((new Date() - startTimes[level]) / 1000);
-                fetch('/telemetry', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        mission_name: `Системы счисления (8 кл) :: Уровень ${level}`,
-                        start_time: startTimes[level].toISOString(),
-                        time_spent_sec: timeSpentSec,
-                        attempts_count: attemptsCount[level],
-                        success: true,
-                        action_log: JSON.stringify(actionLogs[level]),
-                        status: 'completed'
-                    })
-                });
-
+                sendTelemetry(taskName, 'completed');
             } else {
                 if (typeof triggerHardcoreReset === "function" && triggerHardcoreReset(data.msg)) return;
                 resultMsg.innerHTML = '<span class="text-danger">❌ ' + data.msg + '</span>';

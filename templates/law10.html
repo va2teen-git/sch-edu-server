@@ -136,72 +136,93 @@
                     
                     <!-- УРОВЕНЬ 1 -->
                     <div class="tab-pane fade show active" id="lvl1" role="tabpanel">
-                        <h4>Входящие заявки (Осталось: <span id="l1-remain">3</span>)</h4>
-                        <div class="progress-bar-custom">
-                            <div class="progress-fill" id="l1-progress" style="width: 0%;"></div>
+                        <div id="l1-intro" class="text-center mt-4">
+                            <h4 class="text-warning">Задание 1: Заявки (Лицензии)</h4>
+                            <p class="text-muted">Рассмотрите заявки от отделов вашей компании на использование ПО и вынесите резолюцию.</p>
+                            <button class="btn btn-outline-warning mt-3" style="border-radius: 0; font-size: 1.2rem;" onclick="startTask('Уровень 1', 'l1-intro', 'l1-workspace')">НАЧАТЬ ЗАДАНИЕ</button>
                         </div>
-                        <div id="l1-content">
-                            <p><em>Легенда:</em> Рассмотрите заявки от отделов вашей компании на использование ПО и вынесите резолюцию.</p>
-                            
-                            <div class="doc-paper" id="l1-doc">Загрузка документа...</div>
-                            
-                            <div class="hint-box" id="l1-hint"></div>
-                            
-                            <div id="l1-buttons">
-                                <button class="btn-custom" onclick="checkL1('Shareware')">Shareware</button>
-                                <button class="btn-custom" onclick="checkL1('Freeware')">Freeware</button>
-                                <button class="btn-custom" onclick="checkL1('Open Source')">Open Source</button>
-                                <button class="btn-danger-custom" onclick="checkL1('Нарушение')">Отклонить (Нарушение)</button>
+                        <div id="l1-workspace" style="display: none;">
+                            <h4>Входящие заявки (Осталось: <span id="l1-remain">3</span>)</h4>
+                            <div class="progress-bar-custom">
+                                <div class="progress-fill" id="l1-progress" style="width: 0%;"></div>
                             </div>
-                        </div>
-                        <div id="l1-done" class="level-complete" style="display: none;">
-                            <h3>Уровень 1 Пройден! 🏆</h3>
-                            <button class="btn-custom mt-3" onclick="document.getElementById('lvl2-tab').click()">Перейти к Уровню 2</button>
+                            <div id="l1-content">
+                                <p><em>Легенда:</em> Рассмотрите заявки от отделов вашей компании на использование ПО и вынесите резолюцию.</p>
+                                
+                                <div class="doc-paper" id="l1-doc">Загрузка документа...</div>
+                                
+                                <div class="hint-box" id="l1-hint"></div>
+                                
+                                <div id="l1-buttons">
+                                    <button class="btn-custom" onclick="checkL1('Shareware')">Shareware</button>
+                                    <button class="btn-custom" onclick="checkL1('Freeware')">Freeware</button>
+                                    <button class="btn-custom" onclick="checkL1('Open Source')">Open Source</button>
+                                    <button class="btn-danger-custom" onclick="checkL1('Нарушение')">Отклонить (Нарушение)</button>
+                                </div>
+                            </div>
+                            <div id="l1-done" class="level-complete" style="display: none;">
+                                <h3>Уровень 1 Пройден! 🏆</h3>
+                                <button class="btn-custom mt-3" onclick="document.getElementById('lvl2-tab').click()">Перейти к Уровню 2</button>
+                            </div>
                         </div>
                     </div>
 
                     <!-- УРОВЕНЬ 2 -->
                     <div class="tab-pane fade" id="lvl2" role="tabpanel">
-                        <h4>Судебный архив (Осталось: <span id="l2-remain">5</span>)</h4>
-                        <div class="progress-bar-custom">
-                            <div class="progress-fill" id="l2-progress" style="width: 0%;"></div>
+                        <div id="l2-intro" class="text-center mt-4">
+                            <h4 class="text-warning">Задание 2: Суд (ГК РФ)</h4>
+                            <p class="text-muted">Вы — независимый эксперт. Изучите материалы судебных дел по Части 4 ГК РФ.</p>
+                            <button class="btn btn-outline-warning mt-3" style="border-radius: 0; font-size: 1.2rem;" onclick="startTask('Уровень 2', 'l2-intro', 'l2-workspace')">НАЧАТЬ ЗАДАНИЕ</button>
                         </div>
-                        <div id="l2-content">
-                            <p><em>Легенда:</em> Вы — независимый эксперт. Изучите материалы судебных дел по Части 4 ГК РФ.</p>
-                            
-                            <div class="doc-paper" id="l2-doc">Загрузка дела...</div>
-                            
-                            <div class="hint-box" id="l2-hint"></div>
-                            
-                            <div id="l2-buttons"><button class="btn-danger-custom" onclick="checkL2(true)">Признать вину (Нарушение)</button>
-                            <button class="btn-success-custom" onclick="checkL2(false)">Оправдать (Законно)</button></div>
-                        </div>
-                        <div id="l2-done" class="level-complete" style="display: none;">
-                            <h3>Уровень 2 Пройден! 🏆</h3>
-                            <button class="btn-custom mt-3" onclick="document.getElementById('lvl3-tab').click()">Перейти к Уровню 3</button>
+                        <div id="l2-workspace" style="display: none;">
+                            <h4>Судебный архив (Осталось: <span id="l2-remain">5</span>)</h4>
+                            <div class="progress-bar-custom">
+                                <div class="progress-fill" id="l2-progress" style="width: 0%;"></div>
+                            </div>
+                            <div id="l2-content">
+                                <p><em>Легенда:</em> Вы — независимый эксперт. Изучите материалы судебных дел по Части 4 ГК РФ.</p>
+                                
+                                <div class="doc-paper" id="l2-doc">Загрузка дела...</div>
+                                
+                                <div class="hint-box" id="l2-hint"></div>
+                                
+                                <div id="l2-buttons"><button class="btn-danger-custom" onclick="checkL2(true)">Признать вину (Нарушение)</button>
+                                <button class="btn-success-custom" onclick="checkL2(false)">Оправдать (Законно)</button></div>
+                            </div>
+                            <div id="l2-done" class="level-complete" style="display: none;">
+                                <h3>Уровень 2 Пройден! 🏆</h3>
+                                <button class="btn-custom mt-3" onclick="document.getElementById('lvl3-tab').click()">Перейти к Уровню 3</button>
+                            </div>
                         </div>
                     </div>
 
                     <!-- УРОВЕНЬ 3 -->
                     <div class="tab-pane fade" id="lvl3" role="tabpanel">
-                        <h4>Аудит 152-ФЗ (Осталось: <span id="l3-remain">8</span>)</h4>
-                        <div class="progress-bar-custom">
-                            <div class="progress-fill" id="l3-progress" style="width: 0%;"></div>
+                        <div id="l3-intro" class="text-center mt-4">
+                            <h4 class="text-warning">Задание 3: Роскомнадзор (152-ФЗ)</h4>
+                            <p class="text-muted">Проанализируйте протоколы проверок организаций на предмет обработки ПД.</p>
+                            <button class="btn btn-outline-warning mt-3" style="border-radius: 0; font-size: 1.2rem;" onclick="startTask('Уровень 3', 'l3-intro', 'l3-workspace')">НАЧАТЬ ЗАДАНИЕ</button>
                         </div>
-                        <div id="l3-content">
-                            <p><em>Легенда:</em> Проанализируйте протоколы проверок организаций на предмет обработки ПД.</p>
-                            
-                            <div class="doc-paper" id="l3-doc">Загрузка протокола...</div>
-                            
-                            <div class="hint-box" id="l3-hint"></div>
-                            
-                            <div id="l3-buttons"><button class="btn-danger-custom" onclick="checkL3(true)">Выписать штраф (Нарушение)</button>
-                            <button class="btn-success-custom" onclick="checkL3(false)">Проверка пройдена</button></div>
-                        </div>
-                        <div id="l3-done" class="level-complete" style="display: none;">
-                            <h3>МИССИЯ УСПЕШНО ВЫПОЛНЕНА! 🏆🚀</h3>
-                            <p>Все тесты пройдены. Законодательство соблюдено!</p>
-                            <button class="btn-custom mt-3" onclick="window.location.href='/menu'">Вернуться в меню</button>
+                        <div id="l3-workspace" style="display: none;">
+                            <h4>Аудит 152-ФЗ (Осталось: <span id="l3-remain">8</span>)</h4>
+                            <div class="progress-bar-custom">
+                                <div class="progress-fill" id="l3-progress" style="width: 0%;"></div>
+                            </div>
+                            <div id="l3-content">
+                                <p><em>Легенда:</em> Проанализируйте протоколы проверок организаций на предмет обработки ПД.</p>
+                                
+                                <div class="doc-paper" id="l3-doc">Загрузка протокола...</div>
+                                
+                                <div class="hint-box" id="l3-hint"></div>
+                                
+                                <div id="l3-buttons"><button class="btn-danger-custom" onclick="checkL3(true)">Выписать штраф (Нарушение)</button>
+                                <button class="btn-success-custom" onclick="checkL3(false)">Проверка пройдена</button></div>
+                            </div>
+                            <div id="l3-done" class="level-complete" style="display: none;">
+                                <h3>МИССИЯ УСПЕШНО ВЫПОЛНЕНА! 🏆🚀</h3>
+                                <p>Все тесты пройдены. Законодательство соблюдено!</p>
+                                <button class="btn-custom mt-3" onclick="window.location.href='/menu'">Вернуться в меню</button>
+                            </div>
                         </div>
                     </div>
 
@@ -212,11 +233,32 @@
 
     <script>
         // --- Глобальные переменные и Телеметрия ---
-        const startTimes = { 'Уровень 1': new Date(), 'Уровень 2': new Date(), 'Уровень 3': new Date() };
-        const attemptsCount = { 'Уровень 1': 0, 'Уровень 2': 0, 'Уровень 3': 0 };
-        const actionLogs = { 'Уровень 1': [], 'Уровень 2': [], 'Уровень 3': [] };
+        const LESSON_NAME = "Право и Законодательство (10кл)";
+        const taskNames = ['Уровень 1', 'Уровень 2', 'Уровень 3'];
+        
+        const startTimes = {};
+        const attemptsCount = {};
+        const actionLogs = {};
+        
+        taskNames.forEach(t => {
+            startTimes[t] = null;
+            attemptsCount[t] = 0;
+            actionLogs[t] = [];
+        });
+
+        function startTask(task, introId, workspaceId) {
+            document.getElementById(introId).style.display = 'none';
+            document.getElementById(workspaceId).style.display = 'block';
+            
+            startTimes[task] = new Date();
+            attemptsCount[task] = 0;
+            actionLogs[task] = [];
+            
+            sendTelemetry(task, 'in_progress');
+        }
 
         function logAction(task, action, success) {
+            if (!startTimes[task]) return;
             attemptsCount[task]++;
             actionLogs[task].push({ time: new Date().toISOString(), input: action, success: success });
             sendTelemetry(task, 'in_progress');
@@ -225,19 +267,14 @@
         function sendTelemetry(task, status = 'completed') {
             const timeSpent = Math.floor((new Date() - startTimes[task]) / 1000);
             
-            let isTaskSuccess = false;
-            if (task === 'Уровень 1') isTaskSuccess = (l1Correct >= l1Target);
-            if (task === 'Уровень 2') isTaskSuccess = (l2Correct >= l2Target);
-            if (task === 'Уровень 3') isTaskSuccess = (l3Correct >= l3Target);
-
             fetch('/telemetry', {
                 method: 'POST', headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({
-                    mission_name: 'Право и Законодательство (10кл) :: ' + task,
+                    mission_name: `${LESSON_NAME} :: ${task}`,
                     start_time: startTimes[task].toISOString(),
                     time_spent_sec: timeSpent,
                     attempts_count: attemptsCount[task],
-                    success: isTaskSuccess,
+                    success: (status === 'completed'),
                     action_log: JSON.stringify(actionLogs[task]),
                     status: status
                 })
@@ -248,14 +285,10 @@
                 attemptsCount[task] = 0;
                 actionLogs[task] = [];
             }
-        })
-            });
         }
         
         function checkGlobalCompletion() {
-            if (l1Correct >= l1Target && l2Correct >= l2Target && l3Correct >= l3Target) {
-                sendTelemetry('completed');
-            }
+            // Not strictly needed with new telemetry, keeping for safety if called elsewhere
         }
         
         function shuffleButtons(containerId) {
