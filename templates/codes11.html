@@ -122,67 +122,76 @@
 
 {% block scripts %}
 <script>
-    const startTime = new Date();
-    let attemptsCount = 0;
-    let actionLog = [];
+    const startTimes = { 'Четность': new Date(), 'Повторение': new Date(), 'Хэмминг': new Date() };
+    const attemptsCount = { 'Четность': 0, 'Повторение': 0, 'Хэмминг': 0 };
+    const actionLogs = { 'Четность': [], 'Повторение': [], 'Хэмминг': [] };
 
-    function sendTelemetry(mission, success) {
-        const timeSpentSec = Math.floor((new Date() - startTime) / 1000);
+    function logAction(task, action, success) {
+        attemptsCount[task]++;
+        actionLogs[task].push({ time: new Date().toISOString(), input: action, success: success });
+        sendTelemetry(task, 'in_progress');
+    }
+
+    function sendTelemetry(task, status = 'completed') {
+        const timeSpentSec = Math.floor((new Date() - startTimes[task]) / 1000);
+        let isTaskSuccess = (status === 'completed');
+        
         fetch('/telemetry', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                mission_name: 'Помехоустойчивые коды (11 кл) :: ' + mission,
-                start_time: startTime.toISOString(),
+                mission_name: 'Помехоустойчивые коды (11 кл) :: ' + task,
+                start_time: startTimes[task].toISOString(),
                 time_spent_sec: timeSpentSec,
-                attempts_count: attemptsCount,
-                success: success,
-                action_log: JSON.stringify(actionLog)
+                attempts_count: attemptsCount[task],
+                success: isTaskSuccess,
+                action_log: JSON.stringify(actionLogs[task]),
+                status: status
             })
         });
     }
 
     function checkParity(hasError) {
-        attemptsCount++;
         fetch('/check_parity', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ has_error: hasError })
         }).then(r => r.json()).then(data => {
+            logAction('Четность', hasError ? 'С ошибкой' : 'Без ошибки', data.success);
             const el = document.getElementById('res0');
             if (!data.success && typeof triggerHardcoreReset === "function" && triggerHardcoreReset(data.msg)) return;
             el.innerHTML = data.success ? `<span class="text-success">✅ ${data.msg}</span>` : `<span class="text-danger">❌ ${data.msg}</span>`;
-            if(data.success) { setTimeout(() => location.reload(), 1500); sendTelemetry('Четность', true); }
+            if(data.success) { sendTelemetry('Четность', 'completed'); setTimeout(() => location.reload(), 1500); }
         });
     }
 
     function checkM1() {
-        attemptsCount++;
         const ans = document.getElementById('ans1').value;
         fetch('/check_m1', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ answer: ans })
         }).then(r => r.json()).then(data => {
+            logAction('Повторение', ans, data.success);
             const el = document.getElementById('res1');
             if (!data.success && typeof triggerHardcoreReset === "function" && triggerHardcoreReset(data.msg)) return;
             el.innerHTML = data.success ? `<span class="text-success">✅ ${data.msg}</span>` : `<span class="text-danger">❌ ${data.msg}</span>`;
-            if(data.success) { setTimeout(() => location.reload(), 1500); sendTelemetry('Повторение', true); }
+            if(data.success) { sendTelemetry('Повторение', 'completed'); setTimeout(() => location.reload(), 1500); }
         });
     }
 
     function checkM2() {
-        attemptsCount++;
         const pos = parseInt(document.getElementById('ans2').value);
         fetch('/check_m2', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ position: pos })
         }).then(r => r.json()).then(data => {
+            logAction('Хэмминг', String(pos), data.success);
             const el = document.getElementById('res2');
             if (!data.success && typeof triggerHardcoreReset === "function" && triggerHardcoreReset(data.msg)) return;
             el.innerHTML = data.success ? `<span class="text-success">✅ ${data.msg}</span>` : `<span class="text-danger">❌ ${data.msg}</span>`;
-            if(data.success) { setTimeout(() => location.reload(), 1500); sendTelemetry('Хэмминг', true); }
+            if(data.success) { sendTelemetry('Хэмминг', 'completed'); setTimeout(() => location.reload(), 1500); }
         });
     }
 </script>

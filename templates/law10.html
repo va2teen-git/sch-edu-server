@@ -212,28 +212,43 @@
 
     <script>
         // --- Глобальные переменные и Телеметрия ---
-        let startTime = new Date();
-        let attemptCount = 0;
-        let actionLogs = [];
-        
-        function logAction(action, success) {
-            actionLogs.push({ time: new Date().toISOString(), input: action, success: success });
-            sendTelemetry('in_progress');
+        const startTimes = { 'Уровень 1': new Date(), 'Уровень 2': new Date(), 'Уровень 3': new Date() };
+        const attemptsCount = { 'Уровень 1': 0, 'Уровень 2': 0, 'Уровень 3': 0 };
+        const actionLogs = { 'Уровень 1': [], 'Уровень 2': [], 'Уровень 3': [] };
+
+        function logAction(task, action, success) {
+            attemptsCount[task]++;
+            actionLogs[task].push({ time: new Date().toISOString(), input: action, success: success });
+            sendTelemetry(task, 'in_progress');
         }
-        
-        function sendTelemetry(status = 'completed') {
-            const timeSpent = Math.floor((new Date() - startTime) / 1000);
+
+        function sendTelemetry(task, status = 'completed') {
+            const timeSpent = Math.floor((new Date() - startTimes[task]) / 1000);
+            
+            let isTaskSuccess = false;
+            if (task === 'Уровень 1') isTaskSuccess = (l1Correct >= l1Target);
+            if (task === 'Уровень 2') isTaskSuccess = (l2Correct >= l2Target);
+            if (task === 'Уровень 3') isTaskSuccess = (l3Correct >= l3Target);
+
             fetch('/telemetry', {
                 method: 'POST', headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({
-                    mission_name: 'Право и Законодательство (10кл)',
-                    start_time: startTime.toISOString(),
+                    mission_name: 'Право и Законодательство (10кл) :: ' + task,
+                    start_time: startTimes[task].toISOString(),
                     time_spent_sec: timeSpent,
-                    attempts_count: attemptCount,
-                    success: (l1Correct >= l1Target && l2Correct >= l2Target && l3Correct >= l3Target),
-                    action_log: JSON.stringify(actionLogs),
+                    attempts_count: attemptsCount[task],
+                    success: isTaskSuccess,
+                    action_log: JSON.stringify(actionLogs[task]),
                     status: status
                 })
+            });
+            
+            if (status === 'completed') {
+                startTimes[task] = new Date();
+                attemptsCount[task] = 0;
+                actionLogs[task] = [];
+            }
+        })
             });
         }
         
@@ -287,7 +302,7 @@
         function checkL1(userAns) {
             if (l1Processing) return;
             l1Processing = true;
-            attemptCount++;
+            // attemptCount++;
             let isCorrect = (userAns === l1State.ans);
             logAction("Уровень 1", `L1: user=${userAns}, actual=${l1State.ans}`, isCorrect);
             
@@ -352,7 +367,7 @@
         function checkL2(userAns) {
             if (l2Processing) return;
             l2Processing = true;
-            attemptCount++;
+            // attemptCount++;
             let isCorrect = (userAns === l2State.is_violation);
             logAction("Уровень 2", `L2: user=${userAns}, actual=${l2State.is_violation}`, isCorrect);
             
@@ -416,7 +431,7 @@
         function checkL3(userAns) {
             if (l3Processing) return;
             l3Processing = true;
-            attemptCount++;
+            // attemptCount++;
             let isCorrect = (userAns === l3State.is_violation);
             logAction("Уровень 3", `L3: user=${userAns}, actual=${l3State.is_violation}`, isCorrect);
             

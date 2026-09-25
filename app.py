@@ -363,9 +363,30 @@ def teacher():
         if s_name not in students:
             students[s_name] = {'missions': {}}
             
+        KNOWN_LESSON_TASKS = {
+            'Помехоустойчивые коды (11 кл)': ['Четность', 'Повторение', 'Хэмминг'],
+            'Право и Законодательство (10кл)': ['Уровень 1', 'Уровень 2', 'Уровень 3'],
+            'Теория систем (11 кл)': ['М1 (Ящики)', 'М2 (Баланс ОС)', 'М3 (TCP)'],
+            'Сети и Протоколы (10кл)': ['Уровень 1', 'Уровень 2', 'Уровень 3'],
+            'Системы счисления (8 кл)': ['Уровень 1', 'Уровень 2', 'Уровень 3']
+        }
+        
         if lesson_name not in students[s_name]['missions']:
+            default_tasks = {}
+            known_tasks = KNOWN_LESSON_TASKS.get(lesson_name, [])
+            if not known_tasks and task_name != 'Общее':
+                known_tasks = [task_name] # Fallback
+                
+            for kt in known_tasks:
+                default_tasks[kt] = {
+                    'attempts_list': [],
+                    'time_spent': 0,
+                    'errors': 0,
+                    'success': False
+                }
+                
             students[s_name]['missions'][lesson_name] = {
-                'tasks': {},
+                'tasks': default_tasks,
                 'timeline': [],
                 'global_time': 0,
                 'global_errors': 0,

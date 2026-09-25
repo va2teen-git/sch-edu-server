@@ -434,7 +434,7 @@
 
         function checkNetwork() {
             if (l1Processing) return;
-            l1Processing = true; attemptCount++;
+            l1Processing = true; // attemptCount++;
             
             const expected = l1State.edges.map(e => [e[0], e[1]].sort().join("-")).sort();
             const user = userEdges.map(e => [e[0], e[1]].sort().join("-")).sort();
@@ -510,7 +510,7 @@
         }
         function checkL2(userAns) {
             if (l2Processing) return;
-            l2Processing = true; attemptCount++;
+            l2Processing = true; // attemptCount++;
             let isCorrect = (userAns === l2State.ans);
             logAction("Уровень 2", `L2: user=${userAns}, actual=${l2State.ans}`, isCorrect);
             let hint = document.getElementById('l2-hint');
@@ -630,7 +630,7 @@
 
         function checkL3() {
             if (l3Processing) return;
-            l3Processing = true; attemptCount++;
+            l3Processing = true;
             let userAns = document.getElementById('l3-answer').value.trim();
             logAction("Уровень 3", `L3_Term: user=${userAns}, actual=${l3State.ans}`, userAns === l3State.ans);
             let hint = document.getElementById('l3-hint');

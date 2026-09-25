@@ -129,21 +129,38 @@
 
 {% block scripts %}
 <script>
-    const startTime = new Date();
-    let attemptsCount = 0;
-    let actionLog = [];
+    const startTimes = { '1': new Date(), '2': new Date(), '3': new Date() };
+    const attemptsCount = { '1': 0, '2': 0, '3': 0 };
+    const actionLogs = { '1': [], '2': [], '3': [] };
+
+    function logAction(level, action, success) {
+        attemptsCount[level]++;
+        actionLogs[level].push({ time: new Date().toISOString(), input: action, success: success });
+        
+        const timeSpentSec = Math.floor((new Date() - startTimes[level]) / 1000);
+        fetch('/telemetry', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                mission_name: `Системы счисления (8 кл) :: Уровень ${level}`,
+                start_time: startTimes[level].toISOString(),
+                time_spent_sec: timeSpentSec,
+                attempts_count: attemptsCount[level],
+                success: false,
+                action_log: JSON.stringify(actionLogs[level]),
+                status: 'in_progress'
+            })
+        });
+    }
 
     function checkLevel(level, inputId) {
         const answer = document.getElementById(inputId).value.trim();
         const resultMsg = document.getElementById('res' + level);
-        const timestamp = new Date().toISOString();
         
         if(answer === '') {
             resultMsg.innerHTML = '<span class="text-warning">Введите ответ!</span>';
             return;
         }
-
-        attemptsCount++;
 
         fetch('/check_octal_level', {
             method: 'POST',
@@ -152,25 +169,26 @@
         })
         .then(response => response.json())
         .then(data => {
-            actionLog.push({time: timestamp, input: `[Ур ${level}] ${answer}`, success: data.success});
+            logAction(String(level), answer, data.success);
             
             if(data.success) {
                 resultMsg.innerHTML = '<span class="text-success">✅ ' + data.msg + '</span>';
                 document.getElementById(inputId).disabled = true;
                 document.getElementById(inputId).classList.add('border-success');
                 
-                // Telemetry
-                const timeSpentSec = Math.floor((new Date() - startTime) / 1000);
+                // Telemetry Completed
+                const timeSpentSec = Math.floor((new Date() - startTimes[level]) / 1000);
                 fetch('/telemetry', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         mission_name: `Системы счисления (8 кл) :: Уровень ${level}`,
-                        start_time: startTime.toISOString(),
+                        start_time: startTimes[level].toISOString(),
                         time_spent_sec: timeSpentSec,
-                        attempts_count: attemptsCount,
+                        attempts_count: attemptsCount[level],
                         success: true,
-                        action_log: JSON.stringify(actionLog)
+                        action_log: JSON.stringify(actionLogs[level]),
+                        status: 'completed'
                     })
                 });
 

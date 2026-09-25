@@ -1,0 +1,155 @@
+{% extends "layout.html" %}
+{% block content %}
+<style>
+    /* Глобальное правило: КАТЕГОРИЧЕСКИ БЕЗ СКРУГЛЕННЫХ УГЛОВ */
+    * { border-radius: 0 !important; }
+    body { background: #1e1e2f; color: #fff; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+    .cyber-card { background: #2a2a40; padding: 25px; box-shadow: 0 8px 16px rgba(0,0,0,0.5); border: 1px solid #444; height: 100%; }
+    .nav-tabs .nav-link { color: #aaa; background: #222; border: 1px solid #444; }
+    .nav-tabs .nav-link.active { color: #00ffcc; background: #2a2a40; border-bottom-color: #2a2a40; font-weight: bold; }
+    .progress-bar-custom { height: 20px; background: #111; overflow: hidden; margin-bottom: 20px; border: 1px solid #444; }
+    .progress-fill { height: 100%; background: linear-gradient(90deg, #00ffcc, #00b3ff); width: 0%; transition: width 0.4s ease; }
+    .hint-box { background: rgba(255, 68, 68, 0.2); border-left: 4px solid #ff4444; padding: 15px; margin-bottom: 20px; display: none; }
+    .btn-custom { background: #3498db; color: white; border: none; padding: 10px 20px; cursor: pointer; font-weight: bold; transition: 0.2s; margin-right: 10px; margin-bottom: 10px;}
+    .btn-custom:hover { background: #2980b9; transform: scale(1.02); }
+    .level-complete { display: none; color: #00ffcc; text-align: center; margin-top: 20px; }
+    .theory-text { font-size: 0.95rem; line-height: 1.6; }
+    .theory-text h5 { color: #00ffcc; margin-top: 20px; }
+</style>
+
+<div class="row">
+    <!-- Левая колонка: Теория (Минимум 2 страницы текста) -->
+    <div class="col-md-5 mb-4">
+        <div class="cyber-card theory-block theory-text" style="overflow-y: auto; max-height: 85vh;">
+            <h3 class="text-warning mb-4">Название урока</h3>
+            <p>
+                <!-- ТЕОРИЯ (не менее 2 страниц текста) -->
+                Здесь должен быть подробный теоретический материал, достаточный для прочтения на две страницы экрана.
+                Он должен опираться на учебник К.Ю. Полякова.
+            </p>
+        </div>
+    </div>
+
+    <!-- Правая колонка: Интерактивные задания (строго 3 вкладки) -->
+    <div class="col-md-7">
+        <div class="cyber-card" style="overflow-y: auto; max-height: 85vh;">
+            <ul class="nav nav-tabs mb-4" id="lessonTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="lvl1-tab" data-bs-toggle="tab" data-bs-target="#lvl1" type="button" role="tab">Уровень 1</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="lvl2-tab" data-bs-toggle="tab" data-bs-target="#lvl2" type="button" role="tab">Уровень 2</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="lvl3-tab" data-bs-toggle="tab" data-bs-target="#lvl3" type="button" role="tab">Уровень 3</button>
+                </li>
+            </ul>
+
+            <div class="tab-content" id="lessonTabsContent">
+                <!-- УРОВЕНЬ 1 -->
+                <div class="tab-pane fade show active" id="lvl1" role="tabpanel">
+                    <h4>Задание 1 (Осталось: <span id="l1-remain">3</span>)</h4>
+                    <div class="progress-bar-custom"><div class="progress-fill" id="l1-progress" style="width: 0%;"></div></div>
+                    <div id="l1-content">
+                        <!-- Контент задания 1 -->
+                        <p>Легенда: [Ваша легенда и элементы управления]. Нужно выполнить 3 раза.</p>
+                    </div>
+                    <div id="l1-done" class="level-complete"><h3>Уровень 1 Пройден! 🏆</h3></div>
+                </div>
+
+                <!-- УРОВЕНЬ 2 -->
+                <div class="tab-pane fade" id="lvl2" role="tabpanel">
+                    <h4>Задание 2 (Осталось: <span id="l2-remain">5</span>)</h4>
+                    <div class="progress-bar-custom"><div class="progress-fill" id="l2-progress" style="width: 0%;"></div></div>
+                    <div id="l2-content">
+                        <!-- Контент задания 2 -->
+                        <p>Легенда: [Ваша легенда и элементы управления]. Нужно выполнить 5 раз.</p>
+                    </div>
+                    <div id="l2-done" class="level-complete"><h3>Уровень 2 Пройден! 🏆</h3></div>
+                </div>
+
+                <!-- УРОВЕНЬ 3 -->
+                <div class="tab-pane fade" id="lvl3" role="tabpanel">
+                    <h4>Задание 3 (Осталось: <span id="l3-remain">8</span>)</h4>
+                    <div class="progress-bar-custom"><div class="progress-fill" id="l3-progress" style="width: 0%;"></div></div>
+                    <div id="l3-content">
+                        <!-- Контент задания 3 -->
+                        <p>Легенда: [Ваша легенда и элементы управления]. Нужно выполнить 8 раз.</p>
+                    </div>
+                    <div id="l3-done" class="level-complete"><h3>Уровень 3 Пройден! 🏆</h3></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // =======================================================
+    // СТАНДАРТ ТЕЛЕМЕТРИИ
+    // =======================================================
+    // 1. Укажите название урока, которое должно совпадать с тем, что добавлено в KNOWN_LESSON_TASKS в app.py
+    const LESSON_NAME = "Название урока (Класс)";
+    
+    // 2. Названия тасков (вкладок)
+    const taskNames = ['Уровень 1', 'Уровень 2', 'Уровень 3'];
+    
+    const startTimes = {};
+    const attemptsCount = {};
+    const actionLogs = {};
+    
+    // Инициализация телеметрии
+    taskNames.forEach(t => {
+        startTimes[t] = new Date();
+        attemptsCount[t] = 0;
+        actionLogs[t] = [];
+    });
+
+    // 3. Вызывайте эту функцию при каждой попытке/действии ученика
+    function logAction(task, action, success) {
+        attemptsCount[task]++;
+        actionLogs[task].push({ time: new Date().toISOString(), input: action, success: success });
+        sendTelemetry(task, 'in_progress');
+    }
+
+    // 4. Отправка телеметрии на сервер
+    function sendTelemetry(task, status = 'completed') {
+        const timeSpent = Math.floor((new Date() - startTimes[task]) / 1000);
+        
+        fetch('/telemetry', {
+            method: 'POST', 
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({
+                mission_name: `${LESSON_NAME} :: ${task}`,
+                start_time: startTimes[task].toISOString(),
+                time_spent_sec: timeSpent,
+                attempts_count: attemptsCount[task],
+                success: (status === 'completed'),
+                action_log: JSON.stringify(actionLogs[task]),
+                status: status
+            })
+        });
+        
+        // Сброс счетчиков после успешного завершения таска
+        if (status === 'completed') {
+            startTimes[task] = new Date();
+            attemptsCount[task] = 0;
+            actionLogs[task] = [];
+        }
+    }
+
+    // =======================================================
+    // ЛОГИКА ЗАДАНИЙ
+    // =======================================================
+    // Пример обработки ошибки с проверкой Хардкор-режима:
+    function handleError(errorText) {
+        // Обязательный вызов при неправильном ответе:
+        if (typeof triggerHardcoreReset === "function" && triggerHardcoreReset(errorText)) {
+            // Страница перезагрузится автоматически, если активен режим хардкора.
+            return;
+        }
+        // Иначе показываем обычную подсказку/ошибку
+    }
+</script>
+{% endblock %}

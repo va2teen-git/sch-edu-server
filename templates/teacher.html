@@ -96,8 +96,10 @@
                                             <span class="text-light fw-bold">{{ t_name }}</span>
                                             {% if t_data.success %}
                                                 <span class="badge bg-success" style="border-radius: 0;">ВЫПОЛНЕНО</span>
-                                            {% else %}
+                                            {% elif t_data.attempts_list %}
                                                 <span class="badge bg-warning text-dark" style="border-radius: 0;">В ПРОЦЕССЕ</span>
+                                            {% else %}
+                                                <span class="badge bg-secondary" style="border-radius: 0;">НЕ НАЧАТО</span>
                                             {% endif %}
                                         </div>
                                         <div class="card-body py-2">
