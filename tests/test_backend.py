@@ -72,3 +72,33 @@ def test_check_parity(client):
     response_err = client.post('/check_parity', json={"has_error": True})
     assert response_err.status_code == 200
     assert response_err.get_json()['success'] is False
+
+
+def test_menu_loads_lessons_index(client):
+    """Test that menu renders dynamically based on lessons_index.json."""
+    client.post('/', data={'student_name': 'Тестовый Ученик', 'grade': '7'})
+    response = client.get('/menu')
+    assert response.status_code == 200
+    assert 'универсальное вычислительное устройство'.encode('utf-8') in response.data
+
+def test_generic_route_custom_template(client):
+    """Test that the generic route correctly maps to custom HTML if exists."""
+    client.post('/', data={'student_name': 'Тестовый Ученик', 'grade': '11-tech'})
+    response = client.get('/lesson/generic/11-tech/9')
+    assert response.status_code == 200
+    assert 'Четность'.encode('utf-8') in response.data
+    assert 'Помехоустойчивые коды'.encode('utf-8') in response.data
+
+def test_generic_route_fallback(client):
+    """Test that the generic route falls back to generic_lesson.html."""
+    client.post('/', data={'student_name': 'Тестовый Ученик', 'grade': '7'})
+    response = client.get('/lesson/generic/7/1')
+    assert response.status_code == 200
+    
+
+def test_generic_route_not_found(client):
+    """Test that unknown lesson IDs return 404."""
+    client.post('/', data={'student_name': 'Тестовый Ученик', 'grade': '7'})
+    response = client.get('/lesson/generic/7/999')
+    assert response.status_code == 404
+    assert 'Урок не найден'.encode('utf-8') in response.data
