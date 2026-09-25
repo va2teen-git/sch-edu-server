@@ -19,19 +19,19 @@
 
 <div class="row">
     <!-- Левая колонка: Теория (Минимум 2 страницы текста) -->
-    <div class="col-md-5 mb-4">
+    <div class="col-lg-5 col-xl-4 mb-4">
         <div class="cyber-card theory-block theory-text" style="overflow-y: auto; max-height: 85vh;">
-            <h3 class="text-warning mb-4">Название урока</h3>
+            <h3 class="text-warning mb-4">{{ lesson.theme|default('Название урока') }}</h3>
             <p>
                 <!-- ТЕОРИЯ (не менее 2 страниц текста) -->
-                Здесь должен быть подробный теоретический материал, достаточный для прочтения на две страницы экрана.
+                Здесь будет размещена теория по теме: <strong>{{ lesson.theme|default('Название урока') }}</strong>.
                 Он должен опираться на учебник К.Ю. Полякова.
             </p>
         </div>
     </div>
 
     <!-- Правая колонка: Интерактивные задания (строго 3 вкладки) -->
-    <div class="col-md-7">
+    <div class="col-lg-7 col-xl-8">
         <div class="cyber-card" style="overflow-y: auto; max-height: 85vh;">
             <ul class="nav nav-tabs mb-4" id="lessonTabs" role="tablist">
                 <li class="nav-item" role="presentation">
