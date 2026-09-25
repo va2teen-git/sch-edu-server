@@ -39,7 +39,7 @@ def test_telemetry_post(client, app):
         sess['grade'] = '8'
 
     payload = {
-        'mission_name': 'Системы счисления (8 кл) :: Уровень 1',
+        'mission_name': 'Восьмеричная система счисления :: Уровень 1',
         'start_time': '2026-09-25T10:00:00.000Z',
         'time_spent_sec': 120,
         'attempts_count': 3,

@@ -68,7 +68,7 @@
         <!-- Левая колонка: Теория -->
         <div class="col-md-5 mb-4">
             <div class="cyber-card theory-block theory-text" style="overflow-y: auto; max-height: 85vh;">
-                <h3>Теория: Информационное Право</h3>
+                <h3>{{ lesson.theme }}</h3>
                 <p>Материал на базе учебника К.Ю. Полякова (10 класс, углубленный уровень), дополненный примерами из мировой практики.</p>
                 <hr style="border-color: #444;">
                 
@@ -233,7 +233,7 @@
 
     <script>
         // --- Глобальные переменные и Телеметрия ---
-        const LESSON_NAME = "Право и Законодательство (10кл)";
+        const LESSON_NAME = "{{ lesson.theme }}";
         const taskNames = ['Уровень 1', 'Уровень 2', 'Уровень 3'];
         
         const startTimes = {};

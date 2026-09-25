@@ -377,11 +377,12 @@ def teacher():
             students[s_name] = {'missions': {}}
             
         KNOWN_LESSON_TASKS = {
-            'Помехоустойчивые коды (11 кл)': ['Четность', 'Повторение', 'Хэмминг'],
-            'Право и Законодательство (10кл)': ['Уровень 1', 'Уровень 2', 'Уровень 3'],
-            'Теория систем (11 кл)': ['М1 (Ящики)', 'М2 (Баланс ОС)', 'М3 (TCP)'],
-            'Сети и Протоколы (10кл)': ['Уровень 1', 'Уровень 2', 'Уровень 3'],
-            'Системы счисления (8 кл)': ['Уровень 1', 'Уровень 2', 'Уровень 3']
+            'Практическая работа: Практическая работа по теме "Помехоустойчивые коды"': ['Четность', 'Повторение', 'Хэмминг'],
+            'Законодательство Российской Федерации в области программного обеспечения и данных': ['Уровень 1', 'Уровень 2', 'Уровень 3'],
+            'Практическая работа: Законодательство Российской Федерации в области программного обеспечения и данных': ['Уровень 1', 'Уровень 2', 'Уровень 3'],
+            'Системы. Компоненты системы и их взаимодействие. Системный эффект. Управление как информационный процесс. Обратная связь': ['М1 (Ящики)', 'М2 (Баланс ОС)', 'М3 (TCP)'],
+            'Принципы построения и аппаратные компоненты компьютерных сетей. Сетевые протоколы': ['Уровень 1', 'Уровень 2', 'Уровень 3'],
+            'Восьмеричная система счисления': ['Уровень 1', 'Уровень 2', 'Уровень 3']
         }
         
         if lesson_name not in students[s_name]['missions']:
@@ -479,76 +480,6 @@ def teacher():
                 
     return render_template('teacher.html', students=students)
 
-
-@app.route('/lesson/grade11/codes')
-def lesson_codes():
-    if 'student_name' not in session: return redirect('/')
-    log_action(session['student_name'], "Открыл Урок 9 (11кл): Помехоустойчивые коды")
-    
-    # Уровень 1 (Бит четности)
-    data0 = generate_random_bits(4)
-    encoded0 = add_parity_bit(data0)
-    has_error = random.choice([True, False])
-    task0_bits = introduce_noise(encoded0, 1) if has_error else encoded0
-    session['m0_task'] = task0_bits
-    session['m0_has_error'] = has_error
-    
-    # Уровень 2 (Код с повторением)
-    data_bit1 = generate_random_bits(1)
-    encoded1 = repetition_encode(data_bit1)
-    noisy1 = introduce_noise(encoded1, 1)
-    session['m1_task'] = noisy1
-    session['m1_answer'] = data_bit1[0]
-    
-    # Уровень 3 (Код Хэмминга)
-    data2 = generate_random_bits(4)
-    encoded2 = hamming_encode(data2)
-    noisy2 = introduce_noise(encoded2, 1)
-    syndrome2, _ = calculate_syndrome(noisy2)
-    session['m2_task'] = noisy2
-    session['m2_syndrome'] = syndrome2
-    
-    return render_template('codes11.html', 
-                           m0_task=task0_bits, m0_correct=session.get('m0_correct', 0),
-                           m1_task=noisy1, m1_correct=session.get('m1_correct', 0),
-                           m2_task=noisy2, m2_correct=session.get('m2_correct', 0))
-
-@app.route('/lesson/grade11/systems')
-def lesson_systems():
-    if 'student_name' not in session: return redirect('/')
-    log_action(session['student_name'], "Открыл Урок 10 (11кл): Системы и управление")
-    return render_template('lesson10.html')
-
-@app.route('/lesson/grade8/octal')
-def lesson_octal():
-    if 'student_name' not in session: return redirect('/')
-    log_action(session['student_name'], "Открыл Урок (8кл): Восьмеричная система")
-    
-    # Уровень 1 (Базовый): Из 10 в 8
-    lvl1_dec = random.randint(50, 300)
-    session['octal_lvl1_ans'] = oct(lvl1_dec)[2:]
-    
-    # Уровень 2 (Средний): Из 2 в 8 (Триады)
-    lvl2_oct = oct(random.randint(64, 511))[2:] # 3 octal digits
-    lvl2_bin = bin(int(lvl2_oct, 8))[2:]
-    session['octal_lvl2_ans'] = lvl2_oct
-    
-    # Уровень 3 (Сложный): Поиск ошибки
-    triads = [random.randint(0, 7) for _ in range(3)]
-    bin_str = "".join([bin(t)[2:].zfill(3) for t in triads])
-    bug_index = random.randint(0, 2)
-    wrong_digit = (triads[bug_index] + random.randint(1, 6)) % 8
-    fake_octal = list(map(str, triads))
-    fake_octal[bug_index] = str(wrong_digit)
-    fake_octal_str = "".join(fake_octal)
-    
-    session['octal_lvl3_ans'] = str(triads[bug_index]) # правильная цифра на месте ошибки
-    
-    return render_template('octal.html', 
-                           lvl1_dec=lvl1_dec, 
-                           lvl2_bin=lvl2_bin,
-                           lvl3_bin=bin_str,
-                           lvl3_fake=fake_octal_str)
 
 @app.route('/check_octal_level', methods=['POST'])
 def check_octal_level():
@@ -669,21 +600,6 @@ def api_sys11_m3():
     
     return jsonify({"error": "Unknown action"})
 
-@app.route('/lesson/grade10/law')
-def lesson_law():
-    if 'student_name' not in session: return redirect('/')
-    log_action(session['student_name'], "Открыл Урок 12 (10кл): Законодательство в области ПО и данных")
-    
-    # Генерируем уникальные инциденты для ученика
-    incidents = generate_law_incidents()
-    session['law_incidents'] = incidents
-    
-    import json
-    incidents_json = json.dumps(incidents)
-    
-    return render_template('law10.html', incidents_json=incidents_json)
-
-
 @app.route('/api/law_task', methods=['POST'])
 def api_law_task():
     if 'student_name' not in session: return jsonify({"error": "No session"})
@@ -739,12 +655,6 @@ def api_law_task():
             {"doc_type": "ПРОТОКОЛ ПРОВЕРКИ № 152/32", "target": "Фитнес-клуб", "audit_result": "При покупке абонемента требуют указать национальность и вероисповедание.", "is_violation": True, "hint": "Нарушение избыточности. Эти данные не нужны для оказания фитнес-услуг."}
         ]
         return jsonify(random.choice(tasks))
-
-@app.route('/lesson/grade10/networks')
-def lesson_networks():
-    if 'student_name' not in session: return redirect('/')
-    log_action(session['student_name'], "Открыл Урок 13 (10кл): Сети и Протоколы")
-    return render_template('networks10.html')
 
 @app.route('/api/networks_task', methods=['POST'])
 def api_networks_task():
@@ -826,4 +736,16 @@ def generic_lesson_route(grade, lesson_id):
     lesson = next((l for l in lessons_index.get(grade, []) if str(l['id']) == str(lesson_id)), None)
     if not lesson:
         return "Урок не найден", 404
-    return render_template('generic_lesson.html', lesson=lesson)
+        
+    custom_templates = {
+        '11-tech_9': 'codes11.html',
+        '11-tech_10': 'lesson10.html',
+        '10-tech_12': 'law10.html',
+        '10-tech_13': 'networks10.html',
+        '8_4': 'octal.html'
+    }
+    key = f"{grade}_{lesson_id}"
+    template_name = custom_templates.get(key, 'generic_lesson.html')
+    
+    log_action(session['student_name'], f"Открыл Урок {lesson_id} ({grade}): {lesson['theme']}")
+    return render_template(template_name, lesson=lesson)

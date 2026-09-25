@@ -16,7 +16,7 @@
     <!-- Theory Block -->
     <div class="col-md-7">
         <div class="card lesson-card p-4 text-white mb-4">
-            <h2 class="lesson-title">📚 Урок 9: Практическая работа</h2>
+            <h2 class="lesson-title">{{ lesson.theme }}</h2>
             <p class="text-muted mb-4">По теме: "Помехоустойчивые коды"</p>
             <hr class="border-secondary">
             
@@ -137,7 +137,7 @@
 
 {% block scripts %}
 <script>
-    const LESSON_NAME = "Помехоустойчивые коды (11 кл)";
+    const LESSON_NAME = "{{ lesson.theme }}";
     const taskNames = ['Четность', 'Повторение', 'Хэмминг'];
     
     const startTimes = {};
