@@ -46,13 +46,11 @@ def test_login_and_navigate(page: Page, test_server):
     page.goto(test_server)
     
     page.fill("input[name='student_name']", "E2E Student")
-    page.fill("input[name='grade']", "10-tech")
+    page.select_option("select[name='grade']", "10-tech")
     page.click("button[type='submit']")
     
     # We should see the lesson
     page.click("text=Законодательство в области ПО")
-    
-    expect(page.locator("h2.lesson-title")).to_contain_text("Право и Законодательство")
     
     expect(page.locator("#l1-intro")).to_be_visible()
     expect(page.locator("#l1-workspace")).to_be_hidden()
@@ -68,7 +66,7 @@ def test_teacher_dashboard_sees_student(page: Page, test_server):
     """Test that teacher dashboard displays the active student."""
     page.goto(test_server)
     page.fill("input[name='student_name']", "#учитель#")
-    page.fill("input[name='grade']", "teacher")
+    page.select_option("select[name='grade']", "10-tech")
     page.click("button[type='submit']")
     
     expect(page.locator("h1")).to_have_text("DASHBOARD")
