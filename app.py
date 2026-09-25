@@ -424,8 +424,8 @@ def teacher():
         task_time = attempt.time_spent_sec
         task_errors = sum(1 for act in parsed if not act.get('success', True))
         
-        task_obj['time_spent'] = max(task_obj['time_spent'], task_time)
-        task_obj['errors'] = task_errors
+        task_obj['time_spent'] += task_time
+        task_obj['errors'] += task_errors
         
         last_time = None
         for idx, act in enumerate(parsed):
