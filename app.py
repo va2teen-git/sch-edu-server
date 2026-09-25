@@ -751,4 +751,67 @@ def generic_lesson_route(grade, lesson_id):
     template_name = custom_templates.get(key, 'generic_lesson.html')
     
     log_action(session['student_name'], f"Открыл Урок {lesson_id} ({grade}): {lesson['theme']}")
-    return render_template(template_name, lesson=lesson)
+    
+    # --- Custom Initialization Logic ---
+    kwargs = {'lesson': lesson}
+    
+    if template_name == 'codes11.html':
+        data0 = generate_random_bits(4)
+        encoded0 = add_parity_bit(data0)
+        has_error = random.choice([True, False])
+        task0_bits = introduce_noise(encoded0, 1) if has_error else encoded0
+        session['m0_task'] = task0_bits
+        session['m0_has_error'] = has_error
+        
+        data_bit1 = generate_random_bits(1)
+        encoded1 = repetition_encode(data_bit1)
+        noisy1 = introduce_noise(encoded1, 1)
+        session['m1_task'] = noisy1
+        session['m1_answer'] = data_bit1[0]
+        
+        data2 = generate_random_bits(4)
+        encoded2 = hamming_encode(data2)
+        noisy2 = introduce_noise(encoded2, 1)
+        syndrome2, _ = calculate_syndrome(noisy2)
+        session['m2_task'] = noisy2
+        session['m2_syndrome'] = syndrome2
+        
+        kwargs.update({
+            'm0_task': task0_bits, 'm0_correct': session.get('m0_correct', 0),
+            'm1_task': noisy1, 'm1_correct': session.get('m1_correct', 0),
+            'm2_task': noisy2, 'm2_correct': session.get('m2_correct', 0)
+        })
+        
+    elif template_name == 'law10.html':
+        incidents = generate_law_incidents()
+        session['law_incidents'] = incidents
+        kwargs['incidents_json'] = json.dumps(incidents)
+        
+    elif template_name == 'octal.html':
+        lvl1_dec = random.randint(50, 300)
+        session['octal_lvl1_ans'] = oct(lvl1_dec)[2:]
+        
+        lvl2_oct = oct(random.randint(64, 511))[2:] # 3 octal digits
+        lvl2_bin = bin(int(lvl2_oct, 8))[2:]
+        session['octal_lvl2_ans'] = lvl2_oct
+        
+        triads = [random.randint(0, 7) for _ in range(3)]
+        bin_str = "".join([bin(t)[2:].zfill(3) for t in triads])
+        bug_index = random.randint(0, 2)
+        wrong_digit = (triads[bug_index] + random.randint(1, 6)) % 8
+        fake_octal = list(map(str, triads))
+        fake_octal[bug_index] = str(wrong_digit)
+        fake_octal_str = "".join(fake_octal)
+        
+        session['octal_lvl3_ans'] = str(triads[bug_index])
+        
+        kwargs.update({
+            'lvl1_dec': lvl1_dec, 
+            'lvl2_bin': lvl2_bin,
+            'lvl3_bin': bin_str,
+            'lvl3_fake': fake_octal_str
+        })
+        
+    # lesson10.html and networks10.html don't require server-side generated jinja kwargs, they use pure API
+        
+    return render_template(template_name, **kwargs)
