@@ -1,0 +1,39 @@
+{% extends "lesson_boilerplate.html" %}
+
+{% block title %}{{ lesson.theme }} ({{ session.get('grade') }} кл){% endblock %}
+{% block page_title %}{{ lesson.theme }}{% endblock %}
+
+{% block theory_content %}
+<h4>Теория в разработке</h4>
+<p>Здесь будет размещена теория по теме: <strong>{{ lesson.theme }}</strong>.</p>
+{% endblock %}
+
+{% block task_1_title %}Уровень 1{% endblock %}
+{% block task_1_content %}
+<p>Задание в стадии разработки.</p>
+{% endblock %}
+
+{% block task_2_title %}Уровень 2{% endblock %}
+{% block task_2_content %}
+<p>Задание в стадии разработки.</p>
+{% endblock %}
+
+{% block task_3_title %}Уровень 3{% endblock %}
+{% block task_3_content %}
+<p>Задание в стадии разработки.</p>
+{% endblock %}
+
+{% block additional_scripts %}
+<script>
+// Mock checking functions for the generic template
+function checkL1() {
+    alert('Проверка в стадии разработки');
+}
+function checkL2() {
+    alert('Проверка в стадии разработки');
+}
+function checkL3() {
+    alert('Проверка в стадии разработки');
+}
+</script>
+{% endblock %}

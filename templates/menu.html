@@ -3,53 +3,24 @@
 <div class="row justify-content-center">
     <div class="col-md-8 text-center">
         <h1 class="cyber-text mb-4">ДОБРО ПОЖАЛОВАТЬ, {{ name }}</h1>
-        {% if grade == '11-tech' %}
-            <div class="list-group col-md-8 mx-auto text-start mt-4">
-                <a href="/lesson/grade11/codes" class="list-group-item list-group-item-action list-group-item-dark d-flex justify-content-between align-items-center p-3 fs-5">
+        
+        {% if lessons %}
+            <div class="list-group col-md-10 mx-auto text-start mt-4">
+                {% for lesson in lessons %}
+                <a href="{{ lesson.route }}" class="list-group-item list-group-item-action list-group-item-dark d-flex justify-content-between align-items-center p-3 fs-6 {% if not loop.first %}border-top border-secondary{% endif %}">
                     <div>
-                        <span class="badge bg-secondary me-2">Урок 9</span>
-                        Практическая работа по теме "Помехоустойчивые коды"
+                        <span class="badge bg-secondary me-2">Урок {{ lesson.id }}</span>
+                        {{ lesson.theme }}
                     </div>
-                    <span>🚀</span>
+                    <span>
+                        {% if 'Практическая' in lesson.theme or 'работа' in lesson.type|lower %}🚀{% else %}📘{% endif %}
+                    </span>
                 </a>
-                <a href="/lesson/grade11/systems" class="list-group-item list-group-item-action list-group-item-dark d-flex justify-content-between align-items-center p-3 fs-5 border-top border-secondary">
-                    <div>
-                        <span class="badge bg-secondary me-2">Урок 10</span>
-                        Системы и управление. Анализ Интернет и TCP
-                    </div>
-                    <span>🌐</span>
-                </a>
-            </div>
-        {% elif grade == '10-tech' %}
-            <div class="list-group col-md-8 mx-auto text-start mt-4">
-                <a href="/lesson/grade10/law" class="list-group-item list-group-item-action list-group-item-dark d-flex justify-content-between align-items-center p-3 fs-5">
-                    <div>
-                        <span class="badge bg-secondary me-2">Урок 12</span>
-                        Практическая работа: Законодательство в области ПО и данных
-                    </div>
-                    <span>⚖️</span>
-                </a>
-                <a href="/lesson/grade10/networks" class="list-group-item list-group-item-action list-group-item-dark d-flex justify-content-between align-items-center p-3 fs-5 border-top border-secondary">
-                    <div>
-                        <span class="badge bg-secondary me-2">Урок 13</span>
-                        Принципы построения сетей. Маршрутизация BGP
-                    </div>
-                    <span>🌐</span>
-                </a>
-            </div>
-        {% elif grade == '8' %}
-            <div class="list-group col-md-8 mx-auto text-start mt-4">
-                <a href="/lesson/grade8/octal" class="list-group-item list-group-item-action list-group-item-dark d-flex justify-content-between align-items-center p-3 fs-5">
-                    <div>
-                        <span class="badge bg-secondary me-2">Урок 4</span>
-                        Восьмеричная система счисления
-                    </div>
-                    <span>🔓</span>
-                </a>
+                {% endfor %}
             </div>
         {% else %}
             <div class="alert alert-secondary col-md-8 mx-auto mt-4 text-start">
-                <strong>Обратите внимание:</strong> Для вашего класса интерактивные уроки пока находятся в разработке. Пожалуйста, ожидайте обновлений!
+                <strong>Обратите внимание:</strong> Для вашего класса интерактивные уроки пока находятся в разработке или планы еще не загружены. Пожалуйста, ожидайте обновлений!
             </div>
         {% endif %}
     </div>

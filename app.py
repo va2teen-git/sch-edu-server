@@ -18,6 +18,17 @@ if getattr(sys, 'frozen', False):
 else:
     app = Flask(__name__)
 
+import json
+import os
+
+lessons_index = {}
+index_path = os.path.join(os.getcwd(), 'lessons_index.json')
+if os.path.exists(index_path):
+    with open(index_path, 'r', encoding='utf-8') as f:
+        lessons_index = json.load(f)
+
+
+
 import logging
 from logging.handlers import RotatingFileHandler
 import os
@@ -222,7 +233,9 @@ def login():
 @app.route('/menu')
 def menu():
     if 'student_name' not in session: return redirect('/')
-    return render_template('menu.html', name=session['student_name'], grade=session.get('grade', '8'))
+    grade = session.get('grade', '8')
+    lessons = lessons_index.get(grade, [])
+    return render_template('menu.html', name=session['student_name'], grade=grade, lessons=lessons)
 
 @app.route('/theory')
 def theory():
@@ -806,3 +819,11 @@ if __name__ == '__main__':
     print("🛑 Press CTRL+C to stop the server.")
     print("=====================================================")
     serve(app, host='0.0.0.0', port=5000, threads=16)
+
+@app.route('/lesson/generic/<grade>/<lesson_id>')
+def generic_lesson_route(grade, lesson_id):
+    if 'student_name' not in session: return redirect('/')
+    lesson = next((l for l in lessons_index.get(grade, []) if str(l['id']) == str(lesson_id)), None)
+    if not lesson:
+        return "Урок не найден", 404
+    return render_template('generic_lesson.html', lesson=lesson)

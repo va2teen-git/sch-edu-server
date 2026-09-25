@@ -50,7 +50,7 @@ def test_login_and_navigate(page: Page, test_server):
     page.click("button[type='submit']")
     
     # We should see the lesson
-    page.click("text=Законодательство в области ПО")
+    page.click("text=Законодательство Российской Федерации")
     
     expect(page.locator("#l1-intro")).to_be_visible()
     expect(page.locator("#l1-workspace")).to_be_hidden()
